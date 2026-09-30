@@ -208,3 +208,13 @@ footer.ftr a{display:block;padding:3px 0;transition:color .2s}footer.ftr a:hover
 .pie-legend{display:flex;flex-direction:column;gap:8px}
 .pie-legend span.sw{width:10px;height:10px;border-radius:3px;display:inline-block}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}.rv{opacity:1;transform:none}}
+
+/* mobile overflow guards */
+html,body{overflow-x:clip;max-width:100%}
+.grid>*,.col>*{min-width:0}
+@media(max-width:640px){
+  .row:has(> svg + .legend),.row:has(> svg + div){flex-wrap:wrap}
+  .title{overflow-wrap:anywhere}
+  nav.toc{flex-wrap:wrap;max-width:100%;overflow-x:auto}
+  .card{max-width:100%}
+}

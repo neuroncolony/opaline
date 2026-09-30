@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Issuer | Opaline</title>
+<meta name="description" content="Everything one issuer tokenizes: live assets, market cap, volume and chain coverage. Compare wrappers before you buy.">
+<meta name="theme-color" content="#fbf8f4">
+<meta property="og:title" content="Issuer | Opaline">
+<meta property="og:description" content="Everything one issuer tokenizes: live assets, market cap, volume and chain coverage. Compare wrappers before you buy.">
+<meta property="og:image" content="/og.png">
+<link rel="icon" href="/logo-mark.svg" type="image/svg+xml">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="stylesheet" href="/styles.css">
+<script>try{document.documentElement.dataset.theme=JSON.parse(localStorage.getItem('opal:theme'))||(matchMedia('(prefers-color-scheme: dark)').matches?'dusk':'light')}catch(e){}</script>
+<script src="/shell.js" defer></script>
+</head>
+<body>
+<main>
+<section class="wrap" style="padding-top:40px" id="root">
+  <div class="skel" style="height:110px"></div>
+  <div class="skel" style="height:360px;margin-top:20px"></div>
+</section>
+</main>
+<style>
+.iss-logo{width:70px;height:70px;border-radius:22px;display:grid;place-items:center;background:var(--grad);color:#2b2640;font-family:var(--serif);font-size:32px;flex:none;box-shadow:var(--shadow)}
+</style>
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+  const $ = O.$, esc = O.esc, $$ = O.$$;
+  const id = decodeURIComponent(location.pathname.split('/')[2] || '');
+  const state = { cls: 'all', sort: { key: 'mcap', dir: -1 } };
+  let ISS = null, ASSETS = [];
+
+  function notFound() {
+    document.title = 'Issuer not found | Opaline';
+    $('#root').innerHTML = '<div class="card" style="margin-top:40px"><div class="empty"><span class="serif">Issuer not found</span>That issuer slug does not match anyone in the book.<div class="row" style="justify-content:center;margin-top:18px"><a class="btn btn-grad" href="/issuers">All issuers</a></div></div></div>';
+  }
+
+  function initial(name) { return esc((name || '?').trim().charAt(0).toUpperCase()); }
+
+  function render() {
+    const list = O.sortBy(state.cls === 'all' ? ASSETS : ASSETS.filter(a => a.class === state.cls), state.sort);
+    const tb = $('#tbody');
+    if (!list.length) {
+      tb.innerHTML = `<tr><td colspan="11"><div class="empty"><span class="serif">Nothing in this class</span>${esc(ISS.name)} has no ${state.cls === 'all' ? '' : (O.CLASS[state.cls] || { label: state.cls }).label.toLowerCase() + ' '}assets listed right now.</div></td></tr>`;
+      return;
+    }
+    tb.innerHTML = list.map(a => `<tr data-id="${esc(a.id)}">
+      <td>${O.starBtn(a.id)}</td>
+      <td><span class="asset-cell">${O.img(a.image)}<span><b>${esc(a.symbol)}</b><small>${esc(a.name)}</small></span></span></td>
+      <td>${O.classChip(a.class)}</td>
+      <td class="r mono">${O.usd(a.price)}</td>
+      <td class="r mono ${O.pctCls(a.ch1h)}">${O.pct(a.ch1h)}</td>
+      <td class="r mono ${O.pctCls(a.ch24h)}">${O.pct(a.ch24h)}</td>
+      <td class="r mono ${O.pctCls(a.ch7d)}">${O.pct(a.ch7d)}</td>
+      <td class="r mono">${O.compact(a.mcap)}</td>
+      <td class="r mono">${O.compact(a.volume)}</td>
+      <td>${O.spark(a.spark, 96, 30)}</td>
+      <td class="r"><button class="btn btn-sm btn-soft" data-buy="${esc(a.id)}">Trade</button></td>
+    </tr>`).join('');
+  }
+
+  try { ASSETS = await O.assets(); } catch (e) { ASSETS = []; }
+  let issuers = [];
+  try { issuers = (await O.api('issuers', { ttl: 60000 })).issuers || []; } catch (e) { issuers = []; }
+  ISS = issuers.find(x => x.id === id);
+  const mine = ASSETS.filter(a => a.issuer === id);
+  if (!ISS && !mine.length) return notFound();
+  const name = ISS ? ISS.name : (mine[0] ? mine[0].issuerName : id);
+  document.title = `${name} tokenized assets | Opaline`;
+  const mcap = ISS ? ISS.mcap : mine.reduce((s, a) => s + (a.mcap || 0), 0);
+  const vol = ISS ? ISS.volume : mine.reduce((s, a) => s + (a.volume || 0), 0);
+  const classes = ISS ? ISS.classes : mine.reduce((m, a) => (m[a.class] = (m[a.class] || 0) + 1, m), {});
+  const chains = [...new Set(mine.flatMap(a => (a.chains || []).map(c => c.chainId)))].sort((a, b) => a - b);
+  const bigChains = chains.filter(c => !O.isSol(c));
+
+  $('#root').innerHTML = `
+    <div class="page-head">
+      <div class="row" style="gap:18px">
+        <div class="iss-logo rv">${initial(name)}</div>
+        <div>
+          <span class="eyebrow rv">Tokenized asset issuer</span>
+          <h1 class="title rv rv-1">${esc(name)}</h1>
+        </div>
+      </div>
+      <a class="btn btn-soft rv rv-2" href="/issuers">All issuers</a>
+    </div>
+    <p class="lead rv rv-2" style="margin-top:-10px">${mine.length} tokenized asset${mine.length === 1 ? '' : 's'} under management, ${O.compact(mcap)} in market cap and ${O.compact(vol)} traded in the last 24 hours across ${chains.length} chain${chains.length === 1 ? '' : 's'}.</p>
+    <div class="row wrapf" style="margin-top:18px;gap:8px">
+      ${Object.keys(classes).map(c => `<span class="chip">${O.classChip(c)} ${classes[c]}</span>`).join('')}
+      ${bigChains.map(c => `<span class="chip mint">${esc(O.chainName(c))}</span>`).join('')}
+    </div>
+    <div style="margin-top:30px">
+      <div class="page-head">
+        <div><span class="eyebrow rv">The book</span><h2 class="h2 rv rv-1">Assets from <em>${esc(name)}</em></h2></div>
+        <div class="tabs" id="clsTabs">
+          <button class="on" data-c="all">All</button>
+          ${Object.keys(classes).map(c => `<button data-c="${c}">${(O.CLASS[c] || { label: c }).label}</button>`).join('')}
+        </div>
+      </div>
+      <div class="tbl-wrap">
+        <table class="tbl">
+          <thead id="thead"><tr>
+            <th style="width:36px"></th>
+            <th data-k="symbol">Asset</th>
+            <th data-k="class">Class</th>
+            <th class="r" data-k="price">Price</th>
+            <th class="r" data-k="ch1h">1h</th>
+            <th class="r" data-k="ch24h">24h</th>
+            <th class="r" data-k="ch7d">7d</th>
+            <th class="r" data-k="mcap">Market cap</th>
+            <th class="r" data-k="volume">Volume</th>
+            <th>7d</th>
+            <th></th>
+          </tr></thead>
+          <tbody id="tbody"><tr><td colspan="11"><div class="skel" style="height:300px;background:none"></div></td></tr></tbody>
+        </table>
+      </div>
+    </div>`;
+
+  $('#clsTabs').addEventListener('click', e => {
+    const b = e.target.closest('button[data-c]'); if (!b) return;
+    state.cls = b.dataset.c;
+    $$('#clsTabs button').forEach(x => x.classList.toggle('on', x === b));
+    render();
+  });
+  O.sortable($('#thead'), state.sort, render);
+  $('#tbody').addEventListener('click', e => {
+    if (e.target.closest('[data-buy]') || e.target.closest('[data-star]') || e.target.closest('a')) return;
+    const tr = e.target.closest('tr[data-id]');
+    if (tr) location.href = '/asset/' + tr.dataset.id;
+  });
+  render();
+  O.reveal();
+});
+</script>
+</body></html>

@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Swap | Opaline</title>
+<meta name="description" content="Quick picks, live activity and every chain Opaline routes across.">
+<meta name="theme-color" content="#fbf8f4">
+<meta property="og:title" content="Swap | Opaline">
+<meta property="og:description" content="Quick picks, live activity and every chain Opaline routes across.">
+<meta property="og:image" content="/og.png">
+<link rel="icon" href="/logo-mark.svg" type="image/svg+xml">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="stylesheet" href="/styles.css">
+<script>try{document.documentElement.dataset.theme=JSON.parse(localStorage.getItem('opal:theme'))||(matchMedia('(prefers-color-scheme: dark)').matches?'dusk':'light')}catch(e){}</script>
+<script src="/shell.js" defer></script>
+</head>
+<body>
+<section class="wrap" style="padding-top:40px">
+  <div class="page-head">
+    <div>
+      <span class="eyebrow rv">Trade anything, from anywhere</span>
+      <h1 class="title rv rv-1">One sheet, <em>every route</em></h1>
+      <p class="lead rv rv-2">Pick a hot asset, or open the full trade sheet to route across bridges and DEXs on more than twenty chains. One signature per trade.</p>
+    </div>
+    <button class="btn btn-grad btn-lg magnet rv" id="startTrade">Start a trade</button>
+  </div>
+
+  <div class="grid" style="grid-template-columns:1.05fr .95fr;gap:22px;margin-top:8px">
+    <div class="card spot rv rv-1" style="padding:26px">
+      <div class="row between"><span class="eyebrow">Popular right now</span><a class="btn btn-soft btn-sm" href="/markets">All markets</a></div>
+      <div id="quick" style="margin-top:16px"><div class="skel" style="height:320px"></div></div>
+    </div>
+    <div class="col" style="gap:22px">
+      <div class="card rv rv-2" style="padding:26px">
+        <div class="row between"><span class="eyebrow">Recent activity</span><span class="chip sky"><span class="pulse"></span> Live</span></div>
+        <div id="recent" style="margin-top:16px"><div class="skel" style="height:180px"></div></div>
+      </div>
+      <div class="card tint-mint rv rv-3" style="padding:22px">
+        <span class="chip mint">Zero added fees</span>
+        <p class="muted" style="margin:12px 0 0;font-size:14px">You pay network gas and the bridge or DEX fee. Opaline takes nothing. Every quote shows the full breakdown before you sign.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="sp-lg"></div>
+  <div class="page-head">
+    <div><span class="eyebrow rv">Networks</span><h2 class="h2 rv rv-1">Chains we <em>route across</em></h2></div>
+    <div class="row rv" id="toolStats"></div>
+  </div>
+  <div class="grid g4" id="chains" style="margin-top:8px"><div class="skel" style="height:84px"></div></div>
+</section>
+
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+  const esc = O.esc;
+  const $ = O.$, $$ = O.$$;
+  $('#startTrade').onclick = () => O.openSwap({title: 'Swap'});
+
+  /* quick picks: 8 top volume routable assets */
+  try {
+    const as = (await O.assets()).filter(a => a.chains.length).sort((a, b) => (b.volume || 0) - (a.volume || 0)).slice(0, 8);
+    $('#quick').innerHTML = as.map((a, i) => `
+      <button class="qp-row rv rv-${i % 4}" data-buy="${esc(a.id)}">
+        ${O.img(a.image, a.symbol)}
+        <span style="flex:1;min-width:0;text-align:left"><b>${esc(a.symbol)}</b> <span class="faint" style="font-weight:500">${esc(a.issuerName)}</span>
+          <span class="faint" style="display:block;font-size:12px;margin-top:2px">${esc(a.underlying)}</span></span>
+        ${O.spark(a.spark, 90, 30)}
+        <span style="text-align:right"><b class="mono">${O.usd(a.price)}</b><br><span class="${O.pctCls(a.ch24h)}" style="font-size:12px;font-weight:700">${O.pct(a.ch24h)}</span></span>
+      </button>`).join('');
+  } catch (e) { $('#quick').innerHTML = '<div class="empty"><span class="serif">Markets are resting</span>Could not load popular assets. Refresh to try again.</div>'; }
+
+  /* recent activity */
+  const drawRecent = () => {
+    const h = O.history.list().slice(0, 8);
+    const el = $('#recent'); if (!el) return;
+    if (!h.length) { el.innerHTML = '<div class="empty"><span class="serif">Nothing yet</span>Your trades will show up here, with status and explorer links.</div>'; return; }
+    el.innerHTML = h.map(x => {
+      const cls = x.status === 'DONE' ? 'mint' : x.status === 'FAILED' ? 'rose' : 'butter';
+      const link = x.hash ? `<a class="faint" href="${O.explorerTx(x.fromChain, x.hash)}" target="_blank" rel="noopener">tx</a>` : '';
+      return `<div class="kv"><span class="row" style="gap:8px"><span class="chip ${cls}" style="min-width:74px;justify-content:center">${esc(x.status)}</span>
+        <span>${x.kind === 'dca' ? 'Plan buy' : 'Trade'}: ${O.num(x.from ? x.from.amount : 0, 4)} ${esc(x.from ? x.from.symbol : '')} <span class="faint">&rarr;</span> ${O.num(x.to ? x.to.amount : 0, 4)} ${esc(x.to ? x.to.symbol : '')}
+        <span class="faint" style="font-size:12px">${O.ago(x.ts)}${x.usd ? ' · ' + O.usd(x.usd) : ''}</span></span></span><span class="row" style="gap:10px">${link}</span></div>`;
+    }).join('');
+  };
+  drawRecent();
+  window.addEventListener('opal:store', e => { if (e.detail === 'history') drawRecent(); });
+
+  /* chains + tools */
+  try {
+    const [ch, tools] = await Promise.all([O.api('lifi/chains', {ttl: 3600000}), O.api('lifi/tools', {ttl: 3600000})]);
+    const chains = (ch.chains || []).slice().sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+    $('#toolStats').innerHTML = `<span class="chip lav">${(tools.bridges || []).length} bridges</span><span class="chip peach">${(tools.exchanges || []).length} DEXs</span>`;
+    $('#chains').innerHTML = chains.map((c, i) => `
+      <div class="card flat rv rv-${i % 4}" style="padding:14px 18px;display:flex;align-items:center;gap:12px">
+        ${O.img(c.logoURI, c.name)}<div><b style="font-size:14px">${esc(c.name)}</b><div class="faint" style="font-size:11px">Chain ${c.id}</div></div>
+      </div>`).join('') || '<div class="empty"><span class="serif">Chains unavailable</span>Route data did not load. Refresh to try again.</div>';
+  } catch (e) { $('#chains').innerHTML = '<div class="empty"><span class="serif">Chains unavailable</span>Route data did not load. Refresh to try again.</div>'; }
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Liquidity pools | Opaline</title>
+<meta name="description" content="Compare liquidity pools for every tokenized asset on Opaline: depth, volume, venue and age, all in one table.">
+<meta name="theme-color" content="#fbf8f4">
+<meta property="og:title" content="Liquidity pools | Opaline">
+<meta property="og:description" content="Compare liquidity pools for every tokenized asset on Opaline: depth, volume, venue and age, all in one table.">
+<meta property="og:image" content="/og.png">
+<link rel="icon" href="/logo-mark.svg" type="image/svg+xml">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="stylesheet" href="/styles.css">
+<script>try{document.documentElement.dataset.theme=JSON.parse(localStorage.getItem('opal:theme'))||(matchMedia('(prefers-color-scheme: dark)').matches?'dusk':'light')}catch(e){}</script>
+<script src="/shell.js" defer></script>
+</head>
+<body>
+<main><section class="wrap">
+  <div class="page-head">
+    <div>
+      <span class="eyebrow rv">Market depth</span>
+      <h1 class="title rv rv-1">Liquidity <em>pools</em></h1>
+      <p class="lead rv rv-2">Every venue where Opaline assets trade, ranked by depth and activity. Pick a ticker to see who hosts its liquidity and how it has held up.</p>
+    </div>
+  </div>
+
+  <div class="row wrapf sp" style="align-items:center">
+    <div class="search" id="searchWrap" style="flex:1;min-width:220px"></div>
+    <div class="row wrapf" id="quickChips" style="gap:8px"></div>
+  </div>
+
+  <div class="grid g4 sp" id="stats">
+    <div class="card tint-lav stat"><div class="k">Pools shown</div><div class="v skel" style="height:30px"></div><div class="s">Across all listed venues</div></div>
+    <div class="card tint-mint stat"><div class="k">Total liquidity</div><div class="v skel" style="height:30px"></div><div class="s">Combined pool depth</div></div>
+    <div class="card tint-peach stat"><div class="k">24h volume</div><div class="v skel" style="height:30px"></div><div class="s">Traded in the last day</div></div>
+    <div class="card tint-sky stat"><div class="k">Chains</div><div class="v skel" style="height:30px"></div><div class="s">Networks with live pools</div></div>
+  </div>
+
+  <div class="card rv sp" style="padding:0">
+    <div class="row between" style="padding:16px 18px 0">
+      <div class="h2" style="font-size:16px" id="tblTitle">All listed pools</div>
+      <span class="faint" style="font-size:12px" id="tblCount"></span>
+    </div>
+    <div class="tbl-wrap" id="tblWrap" style="margin-top:10px">
+      <table class="tbl">
+        <thead>
+          <tr>
+            <th data-k="pair">Pair</th>
+            <th data-k="chain">Chain</th>
+            <th data-k="dex">Venue</th>
+            <th data-k="price" class="r">Price</th>
+            <th data-k="liq" class="r">Liquidity</th>
+            <th data-k="vol24" class="r">24h volume</th>
+            <th data-k="ch24" class="r">24h change</th>
+            <th data-k="buys" class="r">Buys / sells</th>
+            <th data-k="created" class="r">Age</th>
+            <th>Labels</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="tbody"><tr><td colspan="11"><div class="skel" style="height:420px;background:none"></div></td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</section></main>
+<style>
+.tbl td{white-space:nowrap}
+.pair-cell b{font-weight:700;font-size:13.5px}
+.pair-cell small{display:block;color:var(--ink3);font-size:11.5px}
+@media (max-width:680px){#quickChips{width:100%}}
+</style>
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+  const $ = O.$, $$ = O.$$;
+  const state = { q: '', sort: { key: 'liq', dir: -1 } };
+  let rows = [], assets = [];
+
+  try { assets = await O.assets(); } catch (e) { assets = []; }
+  const symSet = new Set(assets.map(a => (a.symbol || '').toUpperCase()));
+  const top = assets.slice().sort((a, b) => (b.volume || 0) - (a.volume || 0));
+  const topSyms = top.slice(0, 10).map(a => a.symbol).filter(Boolean);
+  const top5 = topSyms.slice(0, 5);
+
+  $('#searchWrap').innerHTML = O.icon.search + '<input class="input" id="q" placeholder="Search pools by ticker, e.g. TSLA">';
+  $('#q').addEventListener('input', e => { state.q = e.target.value.trim().toUpperCase(); load(); });
+  $('#quickChips').innerHTML = topSyms.map(s => `<button class="chip" data-sym="${O.esc(s)}">${O.esc(s)}</button>`).join('');
+  $('#quickChips').addEventListener('click', e => {
+    const b = e.target.closest('button[data-sym]'); if (!b) return;
+    state.q = b.dataset.sym; $('#q').value = state.q; load();
+  });
+
+  const merge = lists => {
+    const seen = new Set(), out = [];
+    lists.flat().forEach(p => {
+      if (!p || seen.has(p.pair)) return;
+      seen.add(p.pair);
+      if (p.base && p.base.symbol && symSet.has(String(p.base.symbol).toUpperCase())) out.push(p);
+    });
+    return out;
+  };
+
+  async function load() {
+    $('#tbody').innerHTML = '<tr><td colspan="11"><div class="skel" style="height:420px;background:none"></div></td></tr>';
+    $('#tblTitle').textContent = state.q ? 'Pools for ' + state.q : 'All listed pools';
+    try {
+      if (state.q) {
+        const d = await O.api('pools?q=' + encodeURIComponent(state.q));
+        rows = merge([d.pairs || []]);
+      } else {
+        const lists = await Promise.all(top5.map(s => O.api('pools?q=' + encodeURIComponent(s)).then(d => d.pairs || []).catch(() => [])));
+        rows = merge(lists);
+      }
+    } catch (e) {
+      rows = [];
+    }
+    render();
+  }
+
+  function rowHtml(p) {
+    const bs = p.base ? p.base.symbol : '?', qs = p.quote ? p.quote.symbol : '';
+    const buys = p.txns ? (p.txns.buys || 0) : 0, sells = p.txns ? (p.txns.sells || 0) : 0;
+    return `<tr class="rv">
+      <td><div class="pair-cell"><b>${O.esc(bs)} / ${O.esc(qs)}</b><small>${O.esc(p.pair || '')}</small></div></td>
+      <td><span class="chip lav">${O.esc(p.chain || '')}</span></td>
+      <td>${O.esc(p.dex || '')}</td>
+      <td class="r">${O.usd(p.price)}</td>
+      <td class="r">${O.compact(p.liq)}</td>
+      <td class="r">${O.compact(p.vol24)}</td>
+      <td class="r ${O.pctCls(p.ch24)}">${O.pct(p.ch24)}</td>
+      <td class="r">${O.num(buys, 0)} / ${O.num(sells, 0)}</td>
+      <td class="r faint">${p.created ? O.ago(p.created) : '-'}</td>
+      <td>${(p.labels || []).slice(0, 3).map(l => `<span class="chip butter">${O.esc(l)}</span>`).join(' ') || '<span class="faint">-</span>'}</td>
+      <td class="r"><a class="btn btn-soft btn-sm" href="${O.esc(p.url || '#')}" target="_blank" rel="noopener">Open</a></td>
+    </tr>`;
+  }
+
+  function render() {
+    const list = O.sortBy(rows, state);
+    O.sortable(document.querySelector('table.tbl thead'), state, render);
+    $('#tblCount').textContent = list.length + ' pool' + (list.length === 1 ? '' : 's');
+    $('#tbody').innerHTML = list.length ? list.map(rowHtml).join('')
+      : '<tr><td colspan="11"><div class="empty"><span class="serif">No pools found</span>Try another ticker, or clear the search to see the deepest markets.</div></td></tr>';
+    const liq = list.reduce((s, p) => s + (p.liq || 0), 0);
+    const vol = list.reduce((s, p) => s + (p.vol24 || 0), 0);
+    const chains = new Set(list.map(p => p.chain).filter(Boolean)).size;
+    const set = (i, v) => { const el = $$('#stats .v')[i]; el.classList.remove('skel'); el.style.height = ''; el.innerHTML = v; };
+    set(0, O.num(list.length, 0));
+    set(1, O.compact(liq));
+    set(2, O.compact(vol));
+    set(3, O.num(chains, 0));
+  }
+
+  await load();
+});
+</script>
+</body>
+</html>

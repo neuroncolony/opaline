@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Portfolio | Opaline</title>
+<meta name="description" content="See every tokenized position you hold across chains, self-custodial and read only.">
+<meta name="theme-color" content="#fbf8f4">
+<meta property="og:title" content="Portfolio | Opaline">
+<meta property="og:description" content="See every tokenized position you hold across chains, self-custodial and read only.">
+<meta property="og:image" content="/og.png">
+<link rel="icon" href="/logo-mark.svg" type="image/svg+xml">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="stylesheet" href="/styles.css">
+<script>try{document.documentElement.dataset.theme=JSON.parse(localStorage.getItem('opal:theme'))||(matchMedia('(prefers-color-scheme: dark)').matches?'dusk':'light')}catch(e){}</script>
+<script src="/shell.js" defer></script>
+</head>
+<body>
+<section class="wrap" style="padding-top:40px">
+  <div class="page-head">
+    <div>
+      <span class="eyebrow rv">Everything you hold, on-chain</span>
+      <h1 class="title rv rv-1">Your <em>portfolio</em></h1>
+      <p class="lead rv rv-2">Connect a wallet, or paste any address to follow it. Read only, no signature required just to look.</p>
+    </div>
+  </div>
+
+  <div id="noWallet" class="card spot rv rv-1" style="padding:40px;text-align:center">
+    <div class="sp"></div>
+    <h2 class="h2">Connect to <em>see your holdings</em></h2>
+    <p class="lead" style="margin:12px auto 0;max-width:480px">Balances load across every chain Opaline supports. Tokenized assets are matched to live market prices automatically.</p>
+    <div class="row" style="justify-content:center;margin-top:24px;gap:12px">
+      <button class="btn btn-grad btn-lg magnet" id="pfConnect">Connect wallet</button>
+    </div>
+    <div class="row" style="justify-content:center;margin-top:22px;gap:10px;max-width:520px;margin-left:auto;margin-right:auto">
+      <input class="input mono" id="pfAddr" placeholder="Or watch any address, 0x..." style="flex:1">
+      <button class="btn btn-soft" id="pfWatch">Watch</button>
+    </div>
+    <div class="sp"></div>
+  </div>
+
+  <div id="pfBody" style="display:none">
+    <div class="row between wrapf" style="margin-bottom:16px">
+      <div class="row" style="gap:10px"><span class="chip lav mono" id="pfAddrChip"></span><button class="btn btn-ghost btn-sm" id="pfChange">Change</button></div>
+      <button class="btn btn-soft btn-sm" id="pfRefresh">Refresh</button>
+    </div>
+    <div class="grid g4" id="pfStats" style="margin-bottom:22px"></div>
+    <div class="grid" style="grid-template-columns:.9fr 1.1fr;gap:22px;margin-bottom:22px">
+      <div class="card rv" style="padding:26px"><span class="eyebrow">By class</span><div id="pfDonutClass" style="margin-top:14px"></div></div>
+      <div class="card rv" style="padding:26px"><span class="eyebrow">By asset</span><div id="pfDonutAsset" style="margin-top:14px"></div></div>
+    </div>
+    <div class="page-head"><div><span class="eyebrow rv">Tokenized holdings</span><h2 class="h2 rv rv-1">Real world <em>positions</em></h2></div></div>
+    <div class="card rv" style="padding:20px;margin-bottom:22px"><div id="pfRwa" style="min-height:120px"></div></div>
+    <div class="page-head"><div><span class="eyebrow rv">The rest</span><h2 class="h2 rv rv-1">Other <em>tokens</em></h2></div></div>
+    <div class="card rv" style="padding:20px"><div id="pfOther" style="min-height:80px"></div></div>
+    <div class="page-head" style="margin-top:34px"><div><span class="eyebrow rv">Activity</span><h2 class="h2 rv rv-1">Recent <em>trades</em></h2></div></div>
+    <div class="card rv" style="padding:20px"><div id="pfRecent" style="min-height:80px"></div></div>
+  </div>
+</section>
+
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+  const esc = O.esc;
+  const $ = O.$, $$ = O.$$;
+  let assets = [], amap = {};
+  try { assets = await O.assets(); const m = {}; assets.forEach(a => m[a.id] = a); amap = m; } catch (e) {}
+  const rwaAddrs = {};
+  assets.forEach(a => (a.chains || []).forEach(c => { rwaAddrs[String(c.chainId) + ':' + String(c.address).toLowerCase()] = a; }));
+
+  let addr = O.wallet.account || '';
+  const showForm = () => { $('#noWallet').style.display = addr ? 'none' : ''; $('#pfBody').style.display = addr ? '' : 'none'; };
+  showForm();
+  $('#pfConnect').onclick = async () => { await O.wallet.connect(); };
+  $('#pfChange').onclick = () => { addr = ''; O.store.set('pfWatch', null); showForm(); };
+  $('#pfRefresh').onclick = () => load();
+  $('#pfWatch').onclick = () => {
+    const v = $('#pfAddr').value.trim();
+    if (!/^0x[a-fA-F0-9]{40}$/.test(v)) return O.toast('Enter a valid EVM address, 0x followed by 40 hex characters', 'err');
+    O.store.set('pfWatch', v); addr = v; showForm(); load();
+  };
+  $('#pfAddr').onkeydown = e => { if (e.key === 'Enter') $('#pfWatch').onclick(); };
+
+  async function load() {
+    if (!addr) { showForm(); return; }
+    showForm();
+    $('#pfAddrChip').textContent = O.short(addr);
+    const stats = $('#pfStats'); stats.innerHTML = '<div class="skel" style="height:90px"></div>';
+    $('#pfRwa').innerHTML = '<div class="skel" style="height:160px"></div>';
+    $('#pfOther').innerHTML = '<div class="skel" style="height:120px"></div>';
+    $('#pfDonutClass').innerHTML = ''; $('#pfDonutAsset').innerHTML = '';
+    let bal;
+    try { bal = await O.wallet.balances(addr); }
+    catch (e) { empty(); return; }
+
+    const positions = [];
+    Object.keys(bal || {}).forEach(ch => {
+      (bal[ch] || []).forEach(t => {
+        const amt = t.amount != null && t.decimals != null ? O.fromUnits(t.amount, t.decimals) : 0;
+        const price = t.priceUSD ? +t.priceUSD : null;
+        const hit = rwaAddrs[String(ch) + ':' + String(t.address).toLowerCase()];
+        positions.push({chainId: ch, tok: t, amt, price, hit, usd: hit && hit.price ? amt * hit.price : amt * (price || 0)});
+      });
+    });
+    const held = positions.filter(p => p.amt > 0);
+    if (!held.length) { empty(); return; }
+
+    const rwa = held.filter(p => p.hit);
+    const other = held.filter(p => !p.hit && p.usd > 1).sort((a, b) => b.usd - a.usd).slice(0, 20);
+    const total = held.reduce((s, p) => s + p.usd, 0);
+    const rwaVal = rwa.reduce((s, p) => s + p.usd, 0);
+    const chains = new Set(held.map(p => p.chainId));
+
+    stats.innerHTML = `
+      <div class="stat rv"><div class="k">Total value</div><div class="v">${O.compact(total)}</div><div class="s">across ${chains.size} chain${chains.size === 1 ? '' : 's'}</div></div>
+      <div class="stat rv rv-1"><div class="k">Tokenized, RWA</div><div class="v">${O.compact(rwaVal)}</div><div class="s">${rwa.length} matched position${rwa.length === 1 ? '' : 's'}</div></div>
+      <div class="stat rv rv-2"><div class="k">Positions</div><div class="v">${held.length}</div><div class="s">tokens with a balance</div></div>
+      <div class="stat rv rv-3"><div class="k">Chains</div><div class="v">${chains.size}</div><div class="s">${[...chains].map(c => esc(O.chainName(c) || c)).slice(0, 3).join(', ')}</div></div>`;
+
+    /* donuts */
+    const byClass = {};
+    rwa.forEach(p => { const k = p.hit.class || 'other'; byClass[k] = (byClass[k] || 0) + p.usd; });
+    const clsItems = Object.keys(byClass).map(k => ({label: O.CLASS[k] ? O.CLASS[k].label : k, value: byClass[k]}));
+    $('#pfDonutClass').innerHTML = clsItems.length
+      ? `<div class="row" style="gap:20px;flex-wrap:wrap">${O.donut(clsItems, 140, 22)}<div class="pie-legend">${clsItems.map((it, i) => `<span class="row" style="gap:8px;font-size:13px"><span class="sw" style="background:${O.PALETTE[i]}"></span>${esc(it.label)} ${O.compact(it.value)}</span>`).join('')}</div></div>`
+      : '<div class="empty"><span class="serif">No tokenized assets yet</span>When you hold one it shows up here, matched to live prices.</div>';
+    const topA = rwa.slice().sort((a, b) => b.usd - a.usd).slice(0, 8);
+    $('#pfDonutAsset').innerHTML = topA.length
+      ? `<div class="row" style="gap:20px;flex-wrap:wrap">${O.donut(topA.map(p => ({label: p.hit.symbol, value: p.usd})), 140, 22)}<div class="pie-legend">${topA.map((p, i) => `<span class="row" style="gap:8px;font-size:13px"><span class="sw" style="background:${O.PALETTE[i]}"></span>${esc(p.hit.symbol)} ${total ? Math.round(p.usd / total * 100) : 0}%</span>`).join('')}</div></div>`
+      : '<div class="empty"><span class="serif">Nothing matched yet</span>Tokenized holdings appear here by asset.</div>';
+
+    /* RWA table */
+    const rwaSorted = rwa.slice().sort((a, b) => b.usd - a.usd);
+    $('#pfRwa').innerHTML = rwaSorted.length
+      ? '<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Asset</th><th>Chain</th><th class="r">Amount</th><th class="r">Price</th><th class="r">Value</th><th class="r">24h</th><th></th></tr></thead><tbody>' +
+        rwaSorted.map(p => { const a = p.hit, agg = a.chains.length > 1;
+          return `<tr><td><span class="asset-cell">${O.img(a.image, a.symbol)}<span><b>${esc(a.symbol)}</b><small>${esc(a.issuerName)}</small></span></span></td>
+          <td class="faint">${esc(O.chainName(p.chainId) || p.chainId)}</td>
+          <td class="r mono">${O.num(p.amt, 6)}</td><td class="r mono">${O.usd(a.price)}</td><td class="r mono">${O.usd(p.usd)}</td>
+          <td class="r ${O.pctCls(a.ch24h)}">${O.pct(a.ch24h)}</td>
+          <td class="r"><span class="row" style="gap:6px;justify-content:flex-end"><button class="btn btn-soft btn-sm" data-buy="${esc(a.id)}">Trade</button><button class="btn btn-soft btn-sm" data-buy="${esc(a.id)}" data-side="sell">Sell</button></span></td></tr>`; }).join('') +
+        '</tbody></table></div>'
+      : '<div class="empty"><span class="serif">No tokenized assets yet</span>Trade any asset and it lands here, matched to its issuer and live price.</div>';
+
+    /* other tokens */
+    $('#pfOther').innerHTML = other.length
+      ? '<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Token</th><th>Chain</th><th class="r">Amount</th><th class="r">Price</th><th class="r">Value</th></tr></thead><tbody>' +
+        other.map(p => `<tr><td><span class="asset-cell">${O.img(p.tok.logoURI, p.tok.symbol)}<span><b>${esc(p.tok.symbol || '?')}</b><small>${esc(p.tok.name || '')}</small></span></span></td>
+        <td class="faint">${esc(O.chainName(p.chainId) || p.chainId)}</td>
+        <td class="r mono">${O.num(p.amt, 6)}</td><td class="r mono">${p.price ? O.usd(p.price) : '-'}</td><td class="r mono">${O.usd(p.usd)}</td></tr>`).join('') +
+        '</tbody></table></div>'
+      : '<div class="empty"><span class="serif">No other tokens</span>Everything here over one dollar shows up above.</div>';
+
+    /* activity */
+    const h = O.history.list().slice(0, 6);
+    $('#pfRecent').innerHTML = h.length ? h.map(x => `<div class="kv"><span class="row" style="gap:8px"><span class="chip ${x.status === 'DONE' ? 'mint' : x.status === 'FAILED' ? 'rose' : 'butter'}" style="min-width:70px;justify-content:center">${esc(x.status)}</span><span>${O.num(x.from ? x.from.amount : 0, 4)} ${esc(x.from ? x.from.symbol : '')} <span class="faint">&rarr;</span> ${O.num(x.to ? x.to.amount : 0, 4)} ${esc(x.to ? x.to.symbol : '')} <span class="faint" style="font-size:12px">${O.ago(x.ts)}</span></span></span><span class="row">${x.hash ? `<a class="faint" href="${O.explorerTx(x.fromChain, x.hash)}" target="_blank" rel="noopener">tx</a>` : ''}</span></div>`).join('')
+      : '<div class="empty"><span class="serif">No trades yet</span>Anything you execute on Opaline lands here.</div>';
+  }
+  const empty = () => {
+    $('#pfStats').innerHTML = '';
+    $('#pfRwa').innerHTML = '<div class="empty"><span class="serif">Could not load balances</span>The node or explorer did not answer. Press Refresh to try again.</div>';
+    $('#pfOther').innerHTML = ''; $('#pfDonutClass').innerHTML = ''; $('#pfDonutAsset').innerHTML = '';
+    $('#pfRecent').innerHTML = O.history.list().length ? '' : '<div class="empty"><span class="serif">No trades yet</span>Anything you execute on Opaline lands here.</div>';
+  };
+
+  if (!addr) addr = O.store.get('pfWatch', null) || '';
+  showForm();
+  if (addr) { $('#pfAddrChip').textContent = O.short(addr); load(); }
+  O.wallet.on(() => { addr = O.wallet.account || O.store.get('pfWatch', null) || ''; showForm(); if (addr) load(); });
+});
+</script>
+</body>
+</html>

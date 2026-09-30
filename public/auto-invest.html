@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Auto-invest | Opaline</title>
+<meta name="description" content="Recurring buys across your favorite assets. You approve each run.">
+<meta name="theme-color" content="#fbf8f4">
+<meta property="og:title" content="Auto-invest | Opaline">
+<meta property="og:description" content="Recurring buys across your favorite assets. You approve each run.">
+<meta property="og:image" content="/og.png">
+<link rel="icon" href="/logo-mark.svg" type="image/svg+xml">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="stylesheet" href="/styles.css">
+<script>try{document.documentElement.dataset.theme=JSON.parse(localStorage.getItem('opal:theme'))||(matchMedia('(prefers-color-scheme: dark)').matches?'dusk':'light')}catch(e){}</script>
+<script src="/shell.js" defer></script>
+</head>
+<body>
+<section class="wrap" style="padding-top:40px">
+  <div class="page-head">
+    <div>
+      <span class="eyebrow rv">Small buys, steady habit</span>
+      <h1 class="title rv rv-1">Auto-invest, <em>on schedule</em></h1>
+      <p class="lead rv rv-2">Create a plan that buys your assets on a rhythm. Each run waits for your signature in this browser, and you can pause or change it any time.</p>
+    </div>
+  </div>
+
+  <div class="grid" style="grid-template-columns:.95fr 1.05fr;gap:22px;align-items:start">
+    <div class="card spot rv rv-1" style="padding:26px">
+      <span class="eyebrow">New plan</span>
+      <div class="field" style="margin-top:12px"><label class="lbl">Plan name</label><input class="input" id="dName" placeholder="Monthly tech basket"></div>
+      <div class="field"><label class="lbl">Amount per run (USD)</label><input class="input" id="dAmt" type="number" min="10" step="any" placeholder="200"></div>
+      <div class="field"><label class="lbl">Frequency</label>
+        <select class="input" id="dFreq"><option value="daily">Daily</option><option value="weekly" selected>Weekly</option><option value="biweekly">Biweekly</option><option value="monthly">Monthly</option></select>
+      </div>
+      <div class="field"><label class="lbl">Start date</label><input class="input" id="dStart" type="date"></div>
+      <div class="field"><label class="lbl">Assets and weights</label>
+        <div class="search"><input class="input" id="dSearch" placeholder="Search assets to add" autocomplete="off"></div>
+        <div id="dPick" style="margin-top:10px;max-height:160px;overflow:auto"></div>
+        <div id="dItems" style="margin-top:12px"></div>
+      </div>
+      <button class="btn btn-grad btn-block btn-lg" id="dSave" style="margin-top:18px">Create plan</button>
+    </div>
+
+    <div class="col" style="gap:22px">
+      <div class="card rv rv-2" style="padding:26px">
+        <div class="row between"><span class="eyebrow">Your plans</span><span class="chip lav" id="dCount"></span></div>
+        <div id="dPlans" style="margin-top:16px"><div class="skel" style="height:140px"></div></div>
+      </div>
+      <div class="card tint-sky rv rv-3" style="padding:26px">
+        <div class="row between"><span class="eyebrow">Projection</span><span class="chip sky">Compound, monthly buys</span></div>
+        <div class="row between" style="margin-top:14px;align-items:flex-end">
+          <div><div class="faint" style="font-size:12px;font-weight:700">CONTRIBUTED</div><div class="serif" style="font-size:34px" id="pContrib">-</div></div>
+          <div style="text-align:right"><div class="faint" style="font-size:12px;font-weight:700">PROJECTED AT <span id="pRateLbl"></span></div><div class="serif" style="font-size:34px" id="pValue">-</div></div>
+        </div>
+        <div class="row" style="gap:18px;margin-top:18px;flex-wrap:wrap">
+          <label class="col" style="flex:1;min-width:200px;font-size:13px"><span class="lbl">Months: <b id="pMonthsLbl">24</b></span><input type="range" id="pMonths" min="1" max="60" value="24" style="width:100%"></label>
+          <label class="col" style="flex:1;min-width:200px;font-size:13px"><span class="lbl">Assumed annual return: <b id="pReturnLbl">6%</b></span><input type="range" id="pReturn" min="0" max="15" value="6" style="width:100%"></label>
+        </div>
+        <div id="pChart" style="margin-top:14px"></div>
+        <p class="faint" style="font-size:12px;margin:10px 0 0">A projection, not a promise. Markets move and returns are never guaranteed.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+  const esc = O.esc;
+  const $ = O.$, $$ = O.$$;
+  const ICON_SEARCH = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>';
+
+  let st = {items: [], q: ''};
+  const startInput = $('#dStart');
+  const d0 = new Date(Date.now() + 864e5); startInput.value = d0.toISOString().slice(0, 10); startInput.min = new Date().toISOString().slice(0, 10);
+
+  const drawPick = () => {
+    let list = [];
+    try {
+      const raw = O.store.get('_dcaAssets', null);
+      if (raw && raw.t > Date.now() - 60000) list = raw.a;
+    } catch (e) {}
+    const el = $('#dPick');
+    const q = $('#dSearch').value.trim().toLowerCase();
+    const use = q ? (st.cache || []).filter(a => a.symbol.toLowerCase().includes(q) || a.name.toLowerCase().includes(q)) : (st.cache || []).slice(0, 10);
+    el.innerHTML = use.slice(0, 10).map(a => `<button data-add="${esc(a.id)}" style="display:flex;width:100%;align-items:center;gap:10px;padding:7px 8px;border:0;border-radius:12px;background:transparent;cursor:pointer;text-align:left">${O.img(a.image, a.symbol)}<span style="flex:1"><b>${esc(a.symbol)}</b> <span class="faint" style="font-size:12px">${esc(a.name)}</span></span><span class="chip">add</span></button>`).join('') || '<div class="faint" style="font-size:13px;padding:6px">Loading assets...</div>';
+    $$('[data-add]', el).forEach(b => b.onclick = () => {
+      if (st.items.find(x => x.id === b.dataset.add)) return;
+      st.items.push({id: b.dataset.add, w: 1}); drawItems();
+    });
+  };
+  const drawItems = () => {
+    const tot = st.items.reduce((s, x) => s + x.w, 0) || 1;
+    $('#dItems').innerHTML = st.items.length ? st.items.map((x, i) => {
+      const a = (st.cache || []).find(y => y.id === x.id) || {symbol: x.id};
+      return `<div class="kv"><span class="row" style="gap:8px">${O.img(a.image, a.symbol)}<b>${esc(a.symbol)}</b><span class="faint" style="font-size:12px">${tot > 1 ? Math.round(x.w / tot * 100) + '% weight' : '100%'}</span></span>
+      <span class="row" style="gap:6px"><input class="input" data-w="${i}" type="number" min="1" value="${x.w}" style="width:74px;padding:4px 8px"><button class="icon-btn" data-rm="${i}" aria-label="Remove">${O.icon.x}</button></span></div>`;
+    }).join('') : '<div class="faint" style="font-size:13px">No assets yet. One asset means the full amount each run.</div>';
+    $$('[data-rm]').forEach(b => b.onclick = () => { st.items.splice(+b.dataset.rm, 1); drawItems(); });
+    $$('[data-w]').forEach(b => b.onchange = () => { const v = parseInt(b.value); if (v >= 1) { st.items[+b.dataset.w].w = v; drawItems(); } });
+  };
+  $('#dSearch').oninput = drawPick;
+
+  let cache = [];
+  try {
+    cache = await O.assets();
+    st.cache = cache.filter(a => a.chains.length);
+    st.cache.sort((a, b) => (b.volume || 0) - (a.volume || 0));
+  } catch (e) {}
+  drawPick();
+
+  $('#dSave').onclick = () => {
+    const name = $('#dName').value.trim(), amt = parseFloat($('#dAmt').value), freq = $('#dFreq').value, start = startInput.value ? new Date(startInput.value + 'T12:00:00').getTime() : Date.now();
+    if (!name) return O.toast('Give the plan a name', 'err');
+    if (!(amt > 0)) return O.toast('Enter an amount per run', 'err');
+    if (!st.items.length) return O.toast('Add at least one asset', 'err');
+    const plans = O.store.get('dca', []);
+    plans.unshift({pid: O.uid(), name, items: st.items.map(x => ({id: x.id, w: x.w})), amount: amt, freq, next: Math.max(start, Date.now()), runs: [], created: Date.now(), paused: false, due: false});
+    O.store.set('dca', plans);
+    st.items = []; drawItems(); $('#dName').value = ''; $('#dAmt').value = '';
+    O.askNotify();
+    O.toast('Plan created. You will be asked to sign each run.', 'ok', 6000);
+  };
+
+  /* plans list */
+  const drawPlans = async () => {
+    const plans = O.store.get('dca', []), el = $('#dPlans');
+    $('#dCount').textContent = plans.length + (plans.length === 1 ? ' plan' : ' plans');
+    if (!plans.length) { el.innerHTML = '<div class="empty"><span class="serif">No plans yet</span>Create one on the left and it will show up here with a live countdown.</div>'; return; }
+    let map = {}; try { map = await O.assetMap(); } catch (e) {}
+    el.innerHTML = plans.map(p => {
+      const due = p.due || (Date.now() >= p.next);
+      const nextTxt = due ? 'due now' : 'next run in ' + fmtIn(p.next - Date.now());
+      const invested = p.runs.reduce((s, r) => s + r.usd, 0);
+      return `<div class="card flat" style="padding:18px;margin-bottom:14px">
+        <div class="row between wrapf"><b style="font-size:16px">${esc(p.name)}</b>
+          <span class="row" style="gap:6px"><span class="chip ${due ? 'butter' : 'mint'}">${esc(p.freq)}</span>${p.paused ? '<span class="chip rose">paused</span>' : ''}</span></div>
+        <div class="row between wrapf" style="margin-top:10px;gap:8px">
+          <span class="faint" style="font-size:13px">${p.items.map(it => esc((map[it.id] || {}).symbol || it.id)).join(' + ')} · ${O.usd(p.amount)} per run</span>
+          <span class="row" style="gap:6px">
+            ${due && !p.paused ? `<button class="btn btn-primary btn-sm" data-run="${esc(p.pid)}">Run now</button>` : ''}
+            <button class="btn btn-soft btn-sm" data-edit="${esc(p.pid)}">Edit amount</button>
+            <button class="btn btn-soft btn-sm" data-pause="${esc(p.pid)}">${p.paused ? 'Resume' : 'Pause'}</button>
+            <button class="btn btn-danger btn-sm" data-del="${esc(p.pid)}">Delete</button>
+          </span></div>
+        <div class="row between" style="margin-top:10px"><span class="faint" style="font-size:12px">${nextTxt}</span><span class="faint" style="font-size:12px">${p.runs.length} runs · ${O.usd(invested)} invested</span></div>
+      </div>`;
+    }).join('');
+    $$('[data-run]', el).forEach(b => b.onclick = () => runPlan(b.dataset.run));
+    $$('[data-pause]', el).forEach(b => b.onclick = () => { const ps = O.store.get('dca', []); const p = ps.find(x => x.pid === b.dataset.pause); if (p) { p.paused = !p.paused; if (!p.paused) p.next = Math.max(p.next, Date.now() + 3600e3); O.store.set('dca', ps); } });
+    $$('[data-del]', el).forEach(b => b.onclick = async () => { if (!(await O.confirm('Delete plan', 'This removes the plan and its run history. Nothing is sold.', 'Delete'))) return; O.store.set('dca', O.store.get('dca', []).filter(x => x.pid !== b.dataset.del)); });
+    $$('[data-edit]', el).forEach(b => b.onclick = async () => {
+      const ps = O.store.get('dca', []); const p = ps.find(x => x.pid === b.dataset.edit); if (!p) return;
+      const md = O.modal('Edit amount', `<label class="lbl">Amount per run (USD)</label><input class="input" data-ea type="number" min="10" step="any" value="${p.amount}"><div class="row" style="margin-top:18px;justify-content:flex-end"><button class="btn btn-soft" data-n>Cancel</button><button class="btn btn-primary" data-y>Save</button></div>`);
+      md.body.querySelector('[data-n]').onclick = md.close;
+      md.body.querySelector('[data-y]').onclick = () => { const v = parseFloat(md.body.querySelector('[data-ea]').value); if (v > 0) { p.amount = v; O.store.set('dca', ps); } md.close(); };
+    });
+  };
+  const fmtIn = ms => { if (ms < 0) ms = 0; const h = Math.floor(ms / 3600e3), m = Math.floor(ms % 3600e3 / 60e3); if (h >= 24) return Math.floor(h / 24) + 'd ' + h % 24 + 'h'; return h + 'h ' + m + 'm'; };
+
+  const runPlan = async pid => {
+    const ps = O.store.get('dca', []); const p = ps.find(x => x.pid === pid); if (!p) return;
+    const tot = p.items.reduce((s, x) => s + x.w, 0) || 1;
+    O.toast('Plan run started. Sign each trade when the sheet opens.', 'ok');
+    for (const it of p.items) {
+      const usd = p.amount * it.w / tot;
+      await new Promise(res => O.buy(it.id, {amount: String(usd), kind: 'dca', title: 'Plan: ' + p.name, ref: p.pid, onDone: res}));
+    }
+    const ps2 = O.store.get('dca', []); const p2 = ps2.find(x => x.pid === pid);
+    if (p2) { p2.runs.push({ts: Date.now(), usd: p2.amount}); p2.due = false; p2.next = Date.now() + O.DCA_MS[p2.freq]; O.store.set('dca', ps2); }
+    O.toast('Plan run complete. Next run scheduled.', 'ok', 6000);
+  };
+
+  drawPlans();
+  window.addEventListener('opal:store', e => { if (e.detail === 'dca') drawPlans(); });
+  setInterval(drawPlans, 30000);
+
+  /* projection */
+  const proj = () => {
+    const m = +$('#pMonths').value, r = +$('#pReturn').value / 100;
+    const perRun = parseFloat($('#dAmt').value) || O.store.get('dca', []).reduce((s, p) => s + p.amount, 0) || 100;
+    const runsPerYear = {daily: 365, weekly: 52, biweekly: 26, monthly: 12};
+    const perMonth = perRun * (O.store.get('dca', [])[0] ? runsPerYear[O.store.get('dca', [])[0].freq] : 12) / 12;
+    let contrib = 0, val = 0; const pts = [];
+    const rm = Math.pow(1 + r, 1 / 12);
+    for (let i = 1; i <= m; i++) {
+      contrib += perMonth;
+      val = val * rm + perMonth;
+      pts.push([Date.now() + i * 30 * 864e5, val]);
+    }
+    $('#pMonthsLbl').textContent = m; $('#pReturnLbl').textContent = r * 100 + '%';
+    $('#pContrib').textContent = O.usd(contrib); $('#pValue').textContent = O.usd(val);
+    $('#pRateLbl').textContent = (r * 100) + '% APY';
+    O.areaChart($('#pChart'), [[Date.now(), 0]].concat(pts.length > 1 ? pts : [[Date.now() + 864e5, perMonth], [Date.now() + 2 * 864e5, perMonth]]), {height: 200, fmt: O.usd});
+  };
+  $('#pMonths').oninput = proj; $('#pReturn').oninput = proj; $('#dAmt').oninput = proj;
+  proj();
+});
+</script>
+</body>
+</html>

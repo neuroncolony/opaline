@@ -1,1 +1,45 @@
-<h1>404</h1>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Page not found | Opaline</title>
+<meta name="description" content="That page drifted into the opal.">
+<meta name="theme-color" content="#fbf8f4">
+<meta property="og:title" content="Page not found | Opaline">
+<meta property="og:description" content="That page drifted into the opal.">
+<meta property="og:image" content="/og.png">
+<link rel="icon" href="/logo-mark.svg" type="image/svg+xml">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="stylesheet" href="/styles.css">
+<script>try{document.documentElement.dataset.theme=JSON.parse(localStorage.getItem('opal:theme'))||(matchMedia('(prefers-color-scheme: dark)').matches?'dusk':'light')}catch(e){}</script>
+<script src="/shell.js" defer></script>
+</head>
+<body>
+<style>
+.nf{min-height:70vh;display:flex;align-items:center;justify-content:center;text-align:center}
+.gem{width:180px;height:180px;margin:0 auto 26px;animation:spin 14s linear infinite}
+.gem svg{width:100%;height:100%;filter:drop-shadow(0 18px 40px rgba(150,120,255,.35))}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+<main>
+<section class="wrap nf">
+  <div>
+    <div class="gem"><svg id="gemSvg" viewBox="0 0 64 64" aria-hidden="true"></svg></div>
+    <h1 class="title" style="font-size:clamp(52px,8vw,110px)">Lost in the <em>opal</em></h1>
+    <p class="lead" style="margin:16px auto 0;max-width:440px;text-align:center">That page does not exist. The markets are all still here, one step away.</p>
+    <div class="row" style="justify-content:center;margin-top:28px;gap:12px">
+      <a class="btn btn-grad btn-lg magnet" href="/markets">Browse markets</a>
+      <a class="btn btn-ghost btn-lg" href="/">Back home</a>
+    </div>
+  </div>
+</section>
+</main>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const gem = document.querySelector('.gem');
+  if (gem && window.O && O.LOGO) gem.innerHTML = O.LOGO;
+});
+</script>
+</body>
+</html>

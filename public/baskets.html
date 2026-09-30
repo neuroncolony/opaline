@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Baskets | Opaline</title>
+<meta name="description" content="Build a portfolio of tokenized assets, backtest it, share it and buy it in one flow.">
+<meta name="theme-color" content="#fbf8f4">
+<meta property="og:title" content="Baskets | Opaline">
+<meta property="og:description" content="Build a portfolio of tokenized assets, backtest it, share it and buy it in one flow.">
+<meta property="og:image" content="/og.png">
+<link rel="icon" href="/logo-mark.svg" type="image/svg+xml">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="stylesheet" href="/styles.css">
+<script>try{document.documentElement.dataset.theme=JSON.parse(localStorage.getItem('opal:theme'))||(matchMedia('(prefers-color-scheme: dark)').matches?'dusk':'light')}catch(e){}</script>
+<script src="/shell.js" defer></script>
+<script src="/basket-lib.js" defer></script>
+</head>
+<body>
+<main><section class="wrap">
+<div class="page-head"><div><span class="eyebrow rv">Baskets</span><h1 class="title rv rv-1">Your portfolio, <em>in one flow.</em></h1><p class="lead rv rv-2">Pick assets, set weights, see how the mix moved this week, then buy it all or share a link anyone can copy.</p></div>
+<div class="tabs rv" id="tabs"><button data-t="build" class="on">Build</button><button data-t="mine">My baskets</button><button data-t="index">Index tokens</button></div></div>
+<div id="v-build">
+ <div class="grid" style="grid-template-columns:1.2fr .8fr;gap:20px" id="bgrid">
+  <div class="card rv">
+   <div class="row between wrapf"><input class="input" id="bname" placeholder="Name your basket" style="max-width:320px;font-weight:700"><div class="row wrapf" style="gap:6px"><button class="btn btn-soft btn-sm" id="eq">Equal weight</button><button class="btn btn-soft btn-sm" id="bycap">By market cap</button><button class="btn btn-soft btn-sm" id="norm">Normalize</button></div></div>
+   <div class="search" style="margin-top:14px;position:relative"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input class="input" id="q" placeholder="Add an asset: NVIDIA, gold, S&amp;P 500..." autocomplete="off"><div id="qres" class="card" style="position:absolute;left:0;right:0;top:calc(100% + 6px);z-index:20;padding:6px;display:none"></div></div>
+   <div id="items" style="margin-top:14px;display:flex;flex-direction:column;gap:8px"></div>
+   <div class="row between" style="margin-top:14px;font-size:14px"><span class="faint">Total weight</span><b id="tot">0%</b></div>
+  </div>
+  <div class="col" style="gap:20px">
+   <div class="card tint-lav rv rv-1"><div class="row" style="gap:18px;align-items:center"><div id="donut"></div><div id="legend" style="flex:1"></div></div></div>
+   <div class="card rv rv-2"><div class="row between"><h3>Last 7 days</h3><span class="chip" id="ret">-</span></div><div id="chart" style="margin-top:10px"></div><div class="grid g2" style="margin-top:10px;gap:8px" id="metrics"></div></div>
+   <div class="card tint-mint rv rv-3"><label class="lbl">Budget (USD)</label><input class="input" id="budget" inputmode="decimal" value="100"><div class="grid g3" style="margin-top:12px;gap:8px"><button class="btn btn-grad" id="buy">Buy basket</button><button class="btn btn-soft" id="save">Save</button><button class="btn btn-soft" id="share">Share</button></div></div>
+  </div>
+ </div>
+ <div style="margin-top:40px"><div class="row between"><h2 class="h2" style="font-size:32px">Community <em>baskets</em></h2></div><div class="grid g4" id="community" style="margin-top:16px"></div></div>
+</div>
+<div id="v-mine" style="display:none"><div class="grid g3" id="mine"></div></div>
+<div id="v-index" style="display:none"><div class="grid g3" id="idx"><div class="skel" style="height:180px"></div><div class="skel" style="height:180px"></div><div class="skel" style="height:180px"></div></div></div>
+</section></main>
+<style>
+@media(max-width:900px){#bgrid{grid-template-columns:1fr!important}}
+.brow{display:grid;grid-template-columns:auto 1fr 1.3fr 74px auto;gap:12px;align-items:center;padding:10px 12px;border-radius:16px;background:var(--bg2);animation:pagein .4s var(--ease)}
+.brow input[type=number]{padding:7px 9px;text-align:right}
+.qitem{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:12px;cursor:pointer}.qitem:hover{background:var(--bg2)}
+.qitem img{width:26px;height:26px;border-radius:50%}
+</style>
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+  const {esc, $, $$} = O;
+  let assets = [], map = {}, items = [];
+  try { assets = await O.assets(); assets.forEach(a => map[a.id] = a); } catch (e) {}
+  $$('#tabs button').forEach(b => b.onclick = () => { $$('#tabs button').forEach(x => x.classList.toggle('on', x === b)); ['build','mine','index'].forEach(t => $('#v-' + t).style.display = t === b.dataset.t ? '' : 'none'); if (b.dataset.t === 'mine') drawMine(); if (b.dataset.t === 'index') drawIdx(); });
+  const tot = () => items.reduce((s, i) => s + (+i.w || 0), 0);
+  function draw() {
+    $('#items').innerHTML = items.length ? items.map((i, k) => `<div class="brow"><img src="${esc(i.asset.image)}" alt="" style="width:30px;height:30px;border-radius:50%"><div style="min-width:0"><b>${esc(i.asset.symbol)}</b><small class="faint" style="display:block;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(i.asset.name)}</small></div><input type="range" min="0" max="100" step="0.5" value="${i.w}" data-r="${k}"><input class="input" type="number" min="0" max="100" step="0.5" value="${(+i.w).toFixed(1)}" data-n="${k}"><button class="icon-btn" data-x="${k}" aria-label="Remove" style="width:30px;height:30px">${O.icon.x}</button></div>`).join('') : '<div class="empty"><span class="serif">Start with one asset</span>Search above to add up to 20.</div>';
+    $$('[data-r]').forEach(r => r.oninput = () => { items[+r.dataset.r].w = +r.value; $(`[data-n="${r.dataset.r}"]`).value = (+r.value).toFixed(1); side(); });
+    $$('[data-n]').forEach(r => r.oninput = () => { items[+r.dataset.n].w = Math.max(0, Math.min(100, +r.value || 0)); $(`[data-r="${r.dataset.n}"]`).value = items[+r.dataset.n].w; side(); });
+    $$('[data-x]').forEach(b => b.onclick = () => { items.splice(+b.dataset.x, 1); draw(); });
+    side();
+  }
+  function side() {
+    const t = tot(); $('#tot').textContent = t.toFixed(1) + '%'; $('#tot').className = Math.abs(t - 100) < 0.05 ? 'up' : 'down';
+    $('#donut').innerHTML = items.length ? OB.donut(items) : O.donut([{value: 1, color: 'var(--bg2)'}], 150, 22);
+    $('#legend').innerHTML = items.length ? OB.legend(items) : '<p class="faint">Your allocation shows here.</p>';
+    const s = items.length ? OB.chart($('#chart'), items) : ($('#chart').innerHTML = '<div class="empty" style="padding:30px">Add assets to see the week</div>', null);
+    $('#ret').textContent = s ? O.pct(s.ret) : '-'; $('#ret').className = 'chip ' + (s ? (s.ret >= 0 ? 'mint' : 'rose') : '');
+    const by = items.filter(i => i.asset.ch7d != null).sort((a, b) => b.asset.ch7d - a.asset.ch7d);
+    $('#metrics').innerHTML = s ? `<div class="kv"><span>Volatility</span><b>${s.vol.toFixed(2)}%</b></div><div class="kv"><span>24h</span><b class="${O.pctCls(OB.w24(items))}">${O.pct(OB.w24(items))}</b></div><div class="kv"><span>Best</span><b>${by[0] ? esc(by[0].asset.symbol) + ' ' + O.pct(by[0].asset.ch7d, 1) : '-'}</b></div><div class="kv"><span>Worst</span><b>${by.length ? esc(by[by.length-1].asset.symbol) + ' ' + O.pct(by[by.length-1].asset.ch7d, 1) : '-'}</b></div>` : '';
+  }
+  const add = a => { if (items.find(i => i.id === a.id)) return O.toast('Already in the basket'); if (items.length >= 20) return O.toast('Baskets hold up to 20 assets', 'err'); items.push({id: a.id, asset: a, w: 0}); const n = items.length; items.forEach(i => i.w = +(100 / n).toFixed(2)); draw(); };
+  const q = $('#q'), qres = $('#qres');
+  q.oninput = () => { const s = q.value.trim().toLowerCase(); if (!s) { qres.style.display = 'none'; return; }
+    const r = assets.filter(a => a.symbol.toLowerCase().includes(s) || (a.name || '').toLowerCase().includes(s) || a.underlying.toLowerCase() === s).sort((a, b) => b.volume - a.volume).slice(0, 8);
+    qres.innerHTML = r.map(a => `<div class="qitem" data-a="${a.id}"><img src="${esc(a.image)}" alt=""><b>${esc(a.symbol)}</b><span class="faint" style="flex:1;font-size:12px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">${esc(a.name)}</span><span class="mono" style="font-size:12px">${O.usd(a.price)}</span></div>`).join('') || '<div class="faint" style="padding:10px">No match</div>';
+    qres.style.display = 'block'; $$('[data-a]', qres).forEach(d => d.onclick = () => { add(map[d.dataset.a]); q.value = ''; qres.style.display = 'none'; q.focus(); }); };
+  document.addEventListener('click', e => { if (!e.target.closest('.search')) qres.style.display = 'none'; });
+  $('#eq').onclick = () => { const n = items.length; items.forEach(i => i.w = +(100 / n).toFixed(2)); draw(); };
+  $('#bycap').onclick = () => { const c = items.reduce((s, i) => s + (i.asset.mcap || 0), 0) || 1; items.forEach(i => i.w = +((i.asset.mcap || 0) / c * 100).toFixed(2)); draw(); };
+  $('#norm').onclick = () => { const t = tot() || 1; items.forEach(i => i.w = +(i.w / t * 100).toFixed(2)); draw(); };
+  const valid = () => { if (!items.length) { O.toast('Add at least one asset', 'err'); return false; } if (Math.abs(tot() - 100) > 0.5) { O.toast('Weights must total 100%. Tap Normalize.', 'err'); return false; } return true; };
+  const name = () => $('#bname').value.trim() || 'My basket';
+  $('#buy').onclick = () => valid() && OB.buyAll(items, parseFloat($('#budget').value), name());
+  let editing = null;
+  $('#save').onclick = () => { if (!valid()) return; const all = O.store.get('baskets', []); const rec = {bid: editing || O.uid(), name: name(), items: items.map(i => ({id: i.id, w: i.w})), created: Date.now()}; const k = all.findIndex(b => b.bid === rec.bid); if (k >= 0) all[k] = rec; else all.unshift(rec); editing = rec.bid; O.store.set('baskets', all); O.toast('Basket saved', 'ok'); };
+  $('#share').onclick = async () => { if (!valid()) return;
+    try { const r = await fetch('/api/share', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({name: name(), note: '', author: O.wallet.account || '', items: items.map(i => ({id: i.id, w: i.w}))})}); const j = await r.json(); if (!r.ok) throw new Error(j.error);
+      const url = location.origin + '/basket/' + j.id; const md = O.modal('Share your basket', `<p class="muted">Anyone with this link can view and copy it.</p><div class="row" style="margin-top:14px"><input class="input mono" readonly value="${esc(url)}"><button class="btn btn-primary" data-c>Copy</button></div><a class="btn btn-soft btn-block" style="margin-top:10px" target="_blank" rel="noopener" href="https://x.com/intent/tweet?text=${encodeURIComponent('My ' + name() + ' basket on Opaline ' + url)}">Post on X</a>`);
+      md.body.querySelector('[data-c]').onclick = () => { navigator.clipboard.writeText(url); O.toast('Link copied', 'ok'); };
+    } catch (e) { O.toast(esc(e.message || 'Could not share'), 'err'); } };
+  function load(b) { editing = b.bid || null; $('#bname').value = b.name || ''; items = b.items.map(i => ({id: i.id, w: +i.w, asset: map[i.id]})).filter(i => i.asset); draw(); $$('#tabs button')[0].click(); scrollTo({top: 0, behavior: 'smooth'}); }
+  function drawMine() {
+    const all = O.store.get('baskets', []);
+    $('#mine').innerHTML = all.length ? all.map(b => { const its = b.items.map(i => ({...i, asset: map[i.id]})).filter(i => i.asset); const c = OB.w24(its);
+      return `<div class="card hover rv"><div class="row between"><h3>${esc(b.name)}</h3><span class="chip ${c >= 0 ? 'mint' : 'rose'}">${O.pct(c)} 24h</span></div><div class="row" style="gap:16px;margin-top:12px">${OB.donut(its, 96, 16)}${OB.legend(its.slice(0, 5))}</div><div class="row" style="margin-top:14px;gap:8px"><button class="btn btn-soft btn-sm" data-o="${b.bid}">Open</button><button class="btn btn-ghost btn-sm" data-d="${b.bid}">Delete</button></div></div>`; }).join('') : '<div class="card empty" style="grid-column:1/-1"><span class="serif">No saved baskets yet</span>Build one and tap Save.</div>';
+    $$('[data-o]').forEach(b => b.onclick = () => load(all.find(x => x.bid === b.dataset.o)));
+    $$('[data-d]').forEach(b => b.onclick = async () => { if (await O.confirm('Delete basket?', 'This removes it from this browser.', 'Delete')) { O.store.set('baskets', all.filter(x => x.bid !== b.dataset.d)); drawMine(); } });
+  }
+  async function drawIdx() {
+    try { const ix = (await O.api('baskets', {ttl: 60000})).indexes || [];
+      $('#idx').innerHTML = ix.length ? ix.slice(0, 30).map((x, k) => { const c = O.bestChain(x); return `<div class="card hover rv"><div class="row" style="gap:12px">${O.img(x.image)}<div style="flex:1;min-width:0"><b>${esc(x.symbol)}</b><small class="faint" style="display:block;font-size:12px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">${esc(x.name)}</small></div>${O.spark(x.spark, 80, 30)}</div><div class="row between" style="margin-top:14px"><div><div class="serif" style="font-size:28px">${O.usd(x.price)}</div><span class="${O.pctCls(x.ch24h)} mono" style="font-size:13px">${O.pct(x.ch24h)}</span> <span class="faint" style="font-size:12px">${O.compact(x.mcap)} cap</span></div>${c ? `<button class="btn btn-primary btn-sm" data-ix="${k}">Trade</button>` : ''}</div></div>`; }).join('') : '<div class="card empty" style="grid-column:1/-1"><span class="serif">Index tokens are loading</span>Check back in a few minutes.</div>';
+      $$('[data-ix]').forEach(b => b.onclick = () => { const x = ix[+b.dataset.ix], c = O.bestChain(x); O.openSwap({toChain: c.chainId, toToken: c.address, toSymbol: x.symbol, toLogo: x.image, title: 'Trade ' + x.symbol}); });
+    } catch (e) { $('#idx').innerHTML = '<div class="card empty" style="grid-column:1/-1"><span class="serif">Could not load index tokens</span>Try again shortly.</div>'; }
+  }
+  try { const sh = (await O.api('shares', {ttl: 30000})).shares || [];
+    $('#community').innerHTML = sh.length ? sh.slice(0, 8).map(s => { const its = s.items.map(i => ({...i, asset: map[i.id]})).filter(i => i.asset); return `<a class="card hover" href="/basket/${esc(s.id)}"><div class="row between"><b>${esc(s.name)}</b><span class="chip">${s.views || 0} views</span></div><div class="row" style="gap:12px;margin-top:12px">${OB.donut(its, 64, 12)}<span class="faint" style="font-size:12px">${its.slice(0, 4).map(i => esc(i.asset.symbol)).join(', ')}${its.length > 4 ? '...' : ''}</span></div></a>`; }).join('') : '<div class="card empty" style="grid-column:1/-1"><span class="serif">Be the first to share</span>Shared baskets show up here.</div>';
+  } catch (e) { $('#community').innerHTML = ''; }
+  const ed = new URLSearchParams(location.search).get('edit');
+  const saved = ed && O.store.get('baskets', []).find(b => b.bid === ed);
+  if (saved) load(saved); else { ['NVDA', 'AAPL', 'MSFT'].forEach(u => { const a = assets.filter(x => x.underlying === u && x.chains.length).sort((x, y) => y.volume - x.volume)[0]; if (a) items.push({id: a.id, asset: a, w: 33.33}); }); if (items.length) items[0].w = +(100 - 33.33 * (items.length - 1)).toFixed(2); $('#bname').value = items.length ? 'Tech trio' : ''; draw(); }
+});
+</script>
+</body></html>

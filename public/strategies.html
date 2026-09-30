@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Strategies | Opaline</title>
+<meta name="description" content="Curated allocations of tokenized stocks, ETFs, gold and treasuries, ready to invest or automate.">
+<meta name="theme-color" content="#fbf8f4">
+<meta property="og:title" content="Strategies | Opaline">
+<meta property="og:description" content="Curated allocations of tokenized stocks, ETFs, gold and treasuries, ready to invest or automate.">
+<meta property="og:image" content="/og.png">
+<link rel="icon" href="/logo-mark.svg" type="image/svg+xml">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="stylesheet" href="/styles.css">
+<script>try{document.documentElement.dataset.theme=JSON.parse(localStorage.getItem('opal:theme'))||(matchMedia('(prefers-color-scheme: dark)').matches?'dusk':'light')}catch(e){}</script>
+<script src="/shell.js" defer></script>
+<script src="/basket-lib.js" defer></script>
+</head>
+<body>
+<main><section class="wrap">
+<div class="page-head"><div><span class="eyebrow rv">Strategies</span><h1 class="title rv rv-1">Allocations with <em>a point of view.</em></h1><p class="lead rv rv-2">Six ready-made mixes built from live, routable assets. Invest once, automate it weekly, or make it your own.</p></div></div>
+<div class="grid g3" id="grid"><div class="skel" style="height:300px"></div><div class="skel" style="height:300px"></div><div class="skel" style="height:300px"></div></div>
+</section></main>
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+  const {esc, $, $$} = O;
+  let assets = []; try { assets = await O.assets(); } catch (e) { $('#grid').innerHTML = '<div class="card empty" style="grid-column:1/-1"><span class="serif">Markets are warming up</span>Refresh in a minute.</div>'; return; }
+  const routable = assets.filter(a => a.chains.length);
+  const pick = u => routable.filter(a => (a.underlying === u || a.symbol === u) && ['stock','etf','commodity','treasury'].includes(a.class)).sort((a, b) => b.volume - a.volume)[0];
+  const byClass = (c, n) => routable.filter(a => a.class === c).sort((a, b) => b.mcap - a.mcap).slice(0, n);
+  const gold = () => pick('XAUT') || pick('PAXG') || byClass('commodity', 1)[0];
+  const eq = list => { list = list.filter(Boolean); const seen = new Set(); list = list.filter(a => !seen.has(a.id) && seen.add(a.id)); return list.map(a => ({id: a.id, asset: a, w: 100 / list.length})); };
+  const wt = pairs => { pairs = pairs.filter(p => p[0]); const t = pairs.reduce((s, p) => s + p[1], 0) || 1; return pairs.map(p => ({id: p[0].id, asset: p[0], w: p[1] / t * 100})); };
+  const tr = byClass('treasury', 3);
+  const S = [
+    {n: 'Magnificent Seven', risk: 'Bold', tint: 'lav', d: 'The seven companies that set the pace for global equities, held in equal slices.', items: eq(['AAPL','MSFT','NVDA','GOOGL','AMZN','META','TSLA'].map(pick))},
+    {n: 'AI builders', risk: 'Bold', tint: 'rose', d: 'Chips, cloud and software: the picks and shovels behind the AI buildout.', items: eq(['NVDA','AMD','AVGO','TSM','MSFT','PLTR'].map(pick))},
+    {n: 'Dividend garden', risk: 'Balanced', tint: 'mint', d: 'Household names with long records of paying shareholders, season after season.', items: eq(['KO','PEP','JNJ','PG','MCD','O','XOM','JPM'].map(pick))},
+    {n: 'Index core', risk: 'Balanced', tint: 'sky', d: 'Broad market exposure in a handful of tokens. The quiet engine of most portfolios.', items: (() => { const l = ['SPY','QQQ','VTI','IWM'].map(pick).filter(Boolean); return eq(l.length >= 2 ? l : byClass('etf', 3)); })()},
+    {n: 'Safe harbor', risk: 'Calm', tint: 'butter', d: 'Short-term treasuries and gold. Built to hold value when everything else is loud.', items: eq([...tr, gold()])},
+    {n: 'All weather', risk: 'Calm', tint: 'peach', d: 'Stocks, long bonds, gold and cash-like treasuries balanced to ride out any season.', items: wt([[pick('SPY') || pick('VOO') || byClass('etf', 1)[0], 30], [pick('TLT') || pick('IEF') || tr[0], 40], [gold(), 15], [tr[1] || tr[0], 15]])},
+  ].filter(s => s.items.length >= 2);
+  S.forEach(s => { s.sim = OB.sim(s.items); });
+  const riskChip = r => `<span class="chip ${r === 'Calm' ? 'mint' : r === 'Balanced' ? 'sky' : 'rose'}">${r}</span>`;
+  $('#grid').innerHTML = S.map((s, k) => `<div class="card hover spot tint-${s.tint} rv rv-${k % 3}" data-s="${k}" style="cursor:pointer;display:flex;flex-direction:column"><div class="row between"><h3 style="font-size:19px">${esc(s.n)}</h3>${riskChip(s.risk)}</div><p class="muted" style="font-size:14px;margin-top:8px;flex:1">${esc(s.d)}</p><div class="row wrapf" style="gap:5px;margin-top:14px">${s.items.map(i => `<span class="chip">${esc(i.asset.underlying || i.asset.symbol)} ${i.w.toFixed(0)}%</span>`).join('')}</div><div class="row between" style="margin-top:18px;align-items:flex-end">${OB.donut(s.items, 84, 14)}<div style="text-align:right"><div class="faint" style="font-size:11px;font-weight:800;letter-spacing:.08em">7D SIMULATED</div><div class="serif ${s.sim ? O.pctCls(s.sim.ret) : ''}" style="font-size:34px">${s.sim ? O.pct(s.sim.ret) : '-'}</div></div></div></div>`).join('') || '<div class="card empty" style="grid-column:1/-1"><span class="serif">No strategies available</span>Try again soon.</div>';
+  $$('[data-s]').forEach(c => c.onclick = () => open(S[+c.dataset.s]));
+  function open(s) {
+    const md = O.modal(esc(s.n), `<div class="row wrapf" style="gap:8px">${riskChip(s.risk)}<span class="chip">${s.items.length} assets</span><span class="chip ${O.pctCls(OB.w24(s.items)) === 'up' ? 'mint' : 'rose'}">${O.pct(OB.w24(s.items))} 24h</span></div><p class="muted" style="margin-top:10px">${esc(s.d)}</p><div id="sc" style="margin-top:14px"></div><div class="tbl-wrap" style="margin-top:14px"><table class="tbl" style="min-width:480px"><thead><tr><th>Asset</th><th>Issuer</th><th class="r">Weight</th><th class="r">Price</th><th class="r">7d</th></tr></thead><tbody>${s.items.map(i => `<tr onclick="location.href='/asset/${i.asset.id}'"><td><div class="asset-cell">${O.img(i.asset.image)}<div><b>${esc(i.asset.symbol)}</b><small>${esc(i.asset.name)}</small></div></div></td><td class="faint">${esc(i.asset.issuerName)}</td><td class="r"><b>${i.w.toFixed(1)}%</b></td><td class="r mono">${O.usd(i.asset.price)}</td><td class="r ${O.pctCls(i.asset.ch7d)}">${O.pct(i.asset.ch7d)}</td></tr>`).join('')}</tbody></table></div><div class="row wrapf" style="margin-top:16px;gap:8px"><input class="input" id="sb" inputmode="decimal" value="100" style="max-width:140px"><button class="btn btn-grad" id="inv">Invest</button><button class="btn btn-soft" id="auto">Automate weekly</button><button class="btn btn-ghost" id="cus">Customize</button></div>`, {wide: true});
+    setTimeout(() => OB.chart(md.body.querySelector('#sc'), s.items, 200), 60);
+    const items = () => s.items.map(i => ({id: i.id, w: +i.w.toFixed(2)}));
+    md.body.querySelector('#inv').onclick = () => { const b = parseFloat(md.body.querySelector('#sb').value); md.close(); OB.buyAll(s.items, b, s.n); };
+    md.body.querySelector('#auto').onclick = () => { const p = O.store.get('dca', []); p.unshift({pid: O.uid(), name: s.n, items: items(), amount: parseFloat(md.body.querySelector('#sb').value) || 100, freq: 'weekly', next: Date.now(), runs: [], created: Date.now()}); O.store.set('dca', p); location.href = '/auto-invest'; };
+    md.body.querySelector('#cus').onclick = () => { const all = O.store.get('baskets', []); const bid = O.uid(); all.unshift({bid, name: s.n, items: items(), created: Date.now()}); O.store.set('baskets', all); location.href = '/baskets?edit=' + bid; };
+  }
+});
+</script>
+</body></html>

@@ -1,0 +1,11 @@
+/swap: 0 errors
+/orders: 0 errors
+/auto-invest: 0 errors
+/alerts: 0 errors
+/agent: 0 errors
+/agent?q=price%20of%20NVDA: 0 errors
+/portfolio: 0 errors
+/docs: 0 errors
+/nope: 2 errors
+    console: Failed to load resource: the server responded with a status of 404 (Not Found)
+    console: Failed to load resource: the server responded with a status of 404 (Not Found)

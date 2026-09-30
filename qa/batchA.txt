@@ -1,0 +1,34 @@
+Opaline QA batch A
+Run: playwright chromium, networkidle, 4s settle. Console errors + pageerror counted.
+Pages: /markets, /markets?class=etf, /asset/<id from /api/assets with 2+ chains>, /compare, /issuers, /issuer/xstocks, /watchlist
+Viewports: 1440x900 full_page and 390x844 full_page. Screenshots in projects/opaline/qa/.
+
+http://localhost:8765/markets                          desktop errors=0
+http://localhost:8765/markets?class=etf                desktop errors=0
+http://localhost:8765/asset/strategy-pp-variable-xstock desktop errors=0
+http://localhost:8765/compare                          desktop errors=0
+http://localhost:8765/issuers                          desktop errors=0
+http://localhost:8765/issuer/xstocks                   desktop errors=0
+http://localhost:8765/watchlist                        desktop errors=0
+http://localhost:8765/markets                          mobile errors=0
+http://localhost:8765/markets?class=etf                mobile errors=0
+http://localhost:8765/asset/strategy-pp-variable-xstock mobile errors=0
+http://localhost:8765/compare                          mobile errors=0
+http://localhost:8765/issuers                          mobile errors=0
+http://localhost:8765/issuer/xstocks                   mobile errors=0
+http://localhost:8765/watchlist                        mobile errors=0
+
+TOTAL: 0 errors across 14 loads.
+
+Fixes applied during QA:
+1. asset.html: pageerror "$$ is not defined" (O.$$ not aliased in scope). Fixed.
+2. markets.html, compare.html, issuer.html, watchlist.html: same latent issue on user
+   interaction paths (view toggle, sort tabs, class tabs, suggested star). Aliased
+   O.$$ in each page. Re-run: zero errors.
+
+Interaction checks (desktop): load more 50 to 100 rows, grid toggle 100 cards,
+class tab etf 50 cards, sort by price asc and desc, row click navigates to
+/asset/<id>, compare expand shows issuer rows, spread/issuer sorts and ticker
+search, unknown asset and unknown issuer show empty states, watchlist toggles
+re-render via opal:store with 6 suggested cards, alert form writes to
+localStorage opal:alerts. Dash check: no U+2013 or U+2014 in any page.

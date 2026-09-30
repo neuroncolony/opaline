@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Price alerts | Opaline</title>
+<meta name="description" content="Get notified the moment a tokenized asset crosses your line.">
+<meta name="theme-color" content="#fbf8f4">
+<meta property="og:title" content="Price alerts | Opaline">
+<meta property="og:description" content="Get notified the moment a tokenized asset crosses your line.">
+<meta property="og:image" content="/og.png">
+<link rel="icon" href="/logo-mark.svg" type="image/svg+xml">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="stylesheet" href="/styles.css">
+<script>try{document.documentElement.dataset.theme=JSON.parse(localStorage.getItem('opal:theme'))||(matchMedia('(prefers-color-scheme: dark)').matches?'dusk':'light')}catch(e){}</script>
+<script src="/shell.js" defer></script>
+</head>
+<body>
+<section class="wrap" style="padding-top:40px">
+  <div class="page-head">
+    <div>
+      <span class="eyebrow rv">Watch the line</span>
+      <h1 class="title rv rv-1">Price alerts, <em>exactly where you set them</em></h1>
+      <p class="lead rv rv-2">Armed alerts are checked against live prices in this browser. When one fires you get a notification, and it waits for you to re-arm it.</p>
+    </div>
+  </div>
+
+  <div class="card tint-butter rv rv-1" id="permBanner" style="padding:18px 22px;margin-bottom:22px"></div>
+
+  <div class="grid" style="grid-template-columns:.9fr 1.1fr;gap:22px;align-items:start">
+    <div class="card spot rv rv-1" style="padding:26px">
+      <span class="eyebrow">New alert</span>
+      <div class="field" style="margin-top:12px"><label class="lbl">Asset</label>
+        <div class="search"><input class="input" id="aSearch" placeholder="Search ticker, name or underlying" autocomplete="off"></div>
+        <div id="aPick" style="margin-top:10px;max-height:200px;overflow:auto"></div>
+      </div>
+      <div class="field"><label class="lbl">Condition</label>
+        <div class="row wrapf" id="aType" style="gap:6px">
+          <button class="chip on" data-t="above" style="cursor:pointer">Price above</button>
+          <button class="chip" data-t="below" style="cursor:pointer">Price below</button>
+          <button class="chip" data-t="move" style="cursor:pointer">Moves more than, % in 24h</button>
+        </div>
+      </div>
+      <div class="field"><label class="lbl" id="aValLbl">Value (USD)</label>
+        <input class="input" id="aVal" type="number" step="any" min="0" placeholder="0.00">
+      </div>
+      <button class="btn btn-grad btn-block btn-lg" id="aSave" style="margin-top:18px">Arm alert</button>
+      <p class="faint" style="font-size:12px;margin-top:14px">Alerts are checked every 45 seconds while Opaline is open. Enable notifications to hear about fires even in another tab.</p>
+    </div>
+
+    <div class="card rv rv-2" style="padding:26px">
+      <div class="row between"><span class="eyebrow">Your alerts</span><span class="chip lav" id="aCount"></span></div>
+      <div id="aTbl" style="margin-top:16px"><div class="skel" style="height:200px"></div></div>
+    </div>
+  </div>
+</section>
+
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+  const esc = O.esc;
+  const $ = O.$, $$ = O.$$;
+  const ICON_SEARCH = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>';
+
+  let assets = [], st = {pick: null, type: 'above'};
+  try { assets = await O.assets(); } catch (e) {}
+  const byId = {}; assets.forEach(a => byId[a.id] = a);
+
+  /* permission banner */
+  const paintPerm = () => {
+    const b = $('#permBanner'); if (!b) return;
+    const has = typeof Notification !== 'undefined';
+    const p = has ? Notification.permission : 'unsupported';
+    if (p === 'granted') b.innerHTML = `<span class="row" style="gap:10px">${O.icon.bell}<span><b>Notifications on.</b> <span class="muted">Fired alerts will reach you even in another tab.</span></span></span>`;
+    else if (p === 'denied') b.innerHTML = `<span class="row" style="gap:10px">${O.icon.bell}<span><b>Notifications are blocked.</b> <span class="muted">Your browser settings control this. Alerts still fire inside Opaline.</span></span></span>`;
+    else if (p === 'unsupported') b.innerHTML = `<span class="row" style="gap:10px">${O.icon.bell}<span><b>This browser has no notification support.</b> <span class="muted">Alerts still fire inside Opaline.</span></span></span>`;
+    else b.innerHTML = `<span class="row between wrapf" style="gap:10px">${O.icon.bell}<span><b>Turn on notifications</b> <span class="muted">so fired alerts reach you, even in another tab.</span></span><button class="btn btn-primary" id="aEnable">Enable notifications</button></span>`;
+    const en = $('#aEnable'); if (en) en.onclick = async () => { await O.askNotify(); paintPerm(); };
+  };
+  paintPerm();
+
+  /* picker */
+  const drawPick = () => {
+    const q = $('#aSearch').value.trim().toLowerCase();
+    const list = (q ? assets.filter(a => a.symbol.toLowerCase().includes(q) || a.name.toLowerCase().includes(q) || (a.underlying || '').toLowerCase().includes(q)) : assets.slice().sort((a, b) => (b.volume || 0) - (a.volume || 0)).slice(0, 10)).slice(0, 10);
+    $('#aPick').innerHTML = list.map(a => `<button data-p="${esc(a.id)}" style="display:flex;width:100%;align-items:center;gap:10px;padding:7px 8px;border:0;border-radius:12px;background:transparent;cursor:pointer;text-align:left">${O.img(a.image, a.symbol)}<span style="flex:1"><b>${esc(a.symbol)}</b> <span class="faint" style="font-size:12px">${esc(a.issuerName)}</span></span><b class="mono" style="font-size:13px">${O.usd(a.price)}</b></button>`).join('') || '<div class="empty">No asset matches that search.</div>';
+    $$('[data-p]').forEach(b => b.onclick = () => { st.pick = byId[b.dataset.p]; $('#aSearch').value = st.pick.symbol + ' · ' + st.pick.issuerName; prefill(); drawPick(); });
+  };
+  const prefill = () => {
+    if (!st.pick) return;
+    if (st.type === 'move') { $('#aValLbl').textContent = 'Percent move in 24h'; $('#aVal').value = Math.max(1, Math.round(Math.abs(st.pick.ch24h || 5))); }
+    else { $('#aValLbl').textContent = 'Value (USD)'; $('#aVal').value = st.type === 'above' ? (st.pick.high24 || st.pick.price) : (st.pick.low24 || st.pick.price); }
+  };
+  $('#aSearch').oninput = drawPick; drawPick();
+  $$('#aType .chip').forEach(b => b.onclick = () => { st.type = b.dataset.t; $$('#aType .chip').forEach(x => x.classList.toggle('on', x === b)); prefill(); });
+
+  $('#aSave').onclick = () => {
+    if (!st.pick) return O.toast('Pick an asset first', 'err');
+    const v = parseFloat($('#aVal').value);
+    if (!(v > 0)) return O.toast('Enter a value for the alert', 'err');
+    const alerts = O.store.get('alerts', []);
+    alerts.unshift({id: st.pick.id, symbol: st.pick.symbol, type: st.type, value: v, created: Date.now(), fired: 0});
+    O.store.set('alerts', alerts);
+    if (typeof Notification !== 'undefined' && Notification.permission === 'default') O.askNotify();
+    O.toast('Alert armed. It is checked against live prices while Opaline is open.', 'ok', 6000);
+  };
+
+  /* table */
+  const drawTable = async () => {
+    const alerts = O.store.get('alerts', []), el = $('#aTbl');
+    $('#aCount').textContent = alerts.length + (alerts.length === 1 ? ' alert' : ' alerts');
+    if (!alerts.length) { el.innerHTML = '<div class="empty"><span class="serif">No alerts yet</span>Arm one with the form on the left and it will watch the market for you.</div>'; return; }
+    let map = {}; try { map = await O.assetMap(); } catch (e) {}
+    el.innerHTML = '<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Asset</th><th>Condition</th><th class="r">Current</th><th class="r">Distance</th><th>Status</th><th></th></tr></thead><tbody>' +
+      alerts.map(al => {
+        const a = map[al.id], p = a ? a.price : null;
+        const cond = al.type === 'above' ? 'Above ' + O.usd(al.value) : al.type === 'below' ? 'Below ' + O.usd(al.value) : 'Moves more than ' + al.value + '% in 24h';
+        const dist = al.type === 'move' ? null : p && al.value ? (al.value / p - 1) * 100 : null;
+        const status = al.fired ? `<span class="chip rose">fired ${O.ago(al.fired)}</span>` : '<span class="chip mint">armed</span>';
+        return `<tr><td><span class="asset-cell">${O.img(a && a.image)}<span><b>${esc(al.symbol)}</b><small>${esc(a ? a.issuerName : '')}</small></span></span></td>
+        <td>${cond}</td><td class="r mono">${O.usd(p)}</td><td class="r ${O.pctCls(dist)}">${dist == null ? '-' : O.pct(dist)}</td><td>${status}</td>
+        <td class="r"><span class="row" style="gap:6px;justify-content:flex-end">${al.fired ? `<button class="btn btn-soft btn-sm" data-rearm="${esc(al.id)}" data-f="${al.fired}">Re-arm</button>` : ''}<button class="btn btn-danger btn-sm" data-del="${esc(al.id)}" data-f="${al.fired}">Delete</button></span></td></tr>`;
+      }).join('') + '</tbody></table></div>';
+    $$('[data-rearm]', el).forEach(b => b.onclick = () => { const as = O.store.get('alerts', []); const x = as.find(y => y.id === b.dataset.rearm && y.fired === +b.dataset.f); if (x) { x.fired = 0; x.firedAt = null; O.store.set('alerts', as); O.toast('Alert re-armed', 'ok'); } });
+    $$('[data-del]', el).forEach(b => b.onclick = () => { O.store.set('alerts', O.store.get('alerts', []).filter(y => !(y.id === b.dataset.del && (y.fired || 0) === +b.dataset.f))); });
+  };
+  drawTable();
+  window.addEventListener('opal:store', e => { if (e.detail === 'alerts') drawTable(); });
+  setInterval(drawTable, 30000);
+});
+</script>
+</body>
+</html>

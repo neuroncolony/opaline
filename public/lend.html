@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Lend and borrow | Opaline</title>
+<meta name="description" content="Compare lending markets on Opaline: supply and borrow APY, LTV limits and utilization, with a borrow planner for safe sizing.">
+<meta name="theme-color" content="#fbf8f4">
+<meta property="og:title" content="Lend and borrow | Opaline">
+<meta property="og:description" content="Compare lending markets on Opaline: supply and borrow APY, LTV limits and utilization, with a borrow planner for safe sizing.">
+<meta property="og:image" content="/og.png">
+<link rel="icon" href="/logo-mark.svg" type="image/svg+xml">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="stylesheet" href="/styles.css">
+<script>try{document.documentElement.dataset.theme=JSON.parse(localStorage.getItem('opal:theme'))||(matchMedia('(prefers-color-scheme: dark)').matches?'dusk':'light')}catch(e){}</script>
+<script src="/shell.js" defer></script>
+</head>
+<body>
+<main><section class="wrap">
+  <div class="page-head">
+    <div>
+      <span class="eyebrow rv">Credit markets</span>
+      <h1 class="title rv rv-1">Lend and <em>borrow</em></h1>
+      <p class="lead rv rv-2">Markets where tokenized assets count as collateral. Supply to earn, borrow against your portfolio, and size positions before you sign.</p>
+    </div>
+  </div>
+
+  <div class="grid g4 sp" id="stats">
+    <div class="card tint-lav stat"><div class="k">Markets</div><div class="v skel" style="height:30px"></div><div class="s">Live borrowing markets</div></div>
+    <div class="card tint-mint stat"><div class="k">Total supplied</div><div class="v skel" style="height:30px"></div><div class="s">Collateral on deposit</div></div>
+    <div class="card tint-peach stat"><div class="k">Total borrowed</div><div class="v skel" style="height:30px"></div><div class="s">Open debt across markets</div></div>
+    <div class="card tint-butter stat"><div class="k">Average borrow APY</div><div class="v skel" style="height:30px"></div><div class="s">Net cost, rewards included</div></div>
+  </div>
+
+  <div class="card rv sp" style="padding:0">
+    <div class="tbl-wrap" style="margin-top:2px">
+      <table class="tbl">
+        <thead>
+          <tr>
+            <th data-k="symbol">Market</th>
+            <th data-k="project">Project</th>
+            <th data-k="chain">Chain</th>
+            <th data-k="apy" class="r">Supply APY</th>
+            <th data-k="borrowApy" class="r">Borrow APY</th>
+            <th data-k="ltv" class="r">Max LTV</th>
+            <th data-k="supplyUsd" class="r">Supplied</th>
+            <th data-k="borrowedUsd" class="r">Borrowed</th>
+            <th>Utilization</th>
+          </tr>
+        </thead>
+        <tbody id="tbody"><tr><td colspan="9"><div class="skel" style="height:420px;background:none"></div></td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card tint-mint rv sp">
+    <div class="h2" style="font-size:17px">Borrow <em style="font-style:italic">planner</em></h2>
+    <p class="muted" style="font-size:13px;margin-top:4px">Model a position before opening it. Health factor above 1.5 and a liquidation buffer over 30% are comfortable starting points.</p>
+    <div class="grid g2" style="margin-top:14px">
+      <div>
+        <label class="lbl">Collateral market</label>
+        <select class="input" id="planMarket"></select>
+        <label class="lbl" style="margin-top:12px">Collateral value</label>
+        <input class="input" id="planAmt" type="number" min="0" value="25000">
+        <label class="lbl" style="margin-top:12px">Target LTV: <b id="ltvOut">0%</b></label>
+        <input type="range" id="planLtv" min="0" max="100" value="50" style="width:100%">
+      </div>
+      <div class="grid g3 calc-proj" style="gap:10px;align-content:start">
+        <div class="stat"><div class="k">Borrowable</div><div class="v" id="planBorrow">-</div></div>
+        <div class="stat"><div class="k">Health factor</div><div class="v" id="planHealth">-</div></div>
+        <div class="stat"><div class="k">Drop to liquidation</div><div class="v" id="planDrop">-</div></div>
+        <div class="stat"><div class="k">Yearly borrow cost</div><div class="v" id="planCost">-</div></div>
+        <div class="stat"><div class="k">Yearly supply earnings</div><div class="v" id="planEarn">-</div></div>
+        <div class="stat"><div class="k">Net per year</div><div class="v" id="planNet">-</div></div>
+      </div>
+    </div>
+  </div>
+</section></main>
+<style>
+.tbl td{white-space:nowrap}
+.bar-track{min-width:120px}
+@media (max-width:680px){.grid.g4 .card.stat .v{font-size:20px}}
+</style>
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+  const $ = O.$, $$ = O.$$;
+  const state = { sort: { key: 'supplyUsd', dir: -1 } };
+  let rows = [];
+
+  try {
+    const d = await O.api('yields');
+    rows = (d.yields || []).filter(y => y && y.borrow && y.pool);
+  } catch (e) { rows = []; }
+
+  const enriched = rows.map(y => {
+    const b = y.borrow;
+    const supplyUsd = b.totalSupplyUsd != null ? b.totalSupplyUsd : (y.tvl || 0);
+    const borrowedUsd = b.totalBorrowUsd != null ? b.totalBorrowUsd : 0;
+    const netBorrow = ((b.apyBaseBorrow || 0) - (b.apyRewardBorrow || 0)) * 100;
+    const ltv = b.ltv != null ? b.ltv * 100 : null;
+    return { y, supplyUsd, borrowedUsd, netBorrow, ltv, util: supplyUsd > 0 ? Math.min(1, borrowedUsd / supplyUsd) : 0 };
+  });
+
+  function rowHtml(r) {
+    const u = Math.round(r.util * 100);
+    const fill = r.util > 0.9 ? 'var(--down)' : r.util > 0.7 ? 'var(--warn, #e0a13f)' : 'var(--up)';
+    return `<tr class="rv">
+      <td><b>${O.esc(r.y.symbol || r.y.pool)}</b></td>
+      <td>${O.esc(r.y.project || '')}</td>
+      <td><span class="chip lav">${O.esc(r.y.chain || '')}</span></td>
+      <td class="r"><b>${r.y.apy != null ? Number(r.y.apy).toFixed(2) + '%' : '-'}</b></td>
+      <td class="r">${Number(r.netBorrow).toFixed(2)}%</td>
+      <td class="r">${r.ltv != null ? Number(r.ltv).toFixed(0) + '%' : '-'}</td>
+      <td class="r">${O.compact(r.supplyUsd)}</td>
+      <td class="r">${O.compact(r.borrowedUsd)}</td>
+      <td><div class="row" style="gap:8px;align-items:center"><div class="bar-track"><div class="bar-fill" style="width:${u}%;background:${fill}"></div></div><span class="faint" style="font-size:11.5px">${u}%</span></div></td>
+    </tr>`;
+  }
+
+  function render() {
+    const list = O.sortBy(enriched.map(r => Object.assign({}, r, {
+      symbol: r.y.symbol || r.y.pool, project: r.y.project || '', chain: r.y.chain || '', apy: r.y.apy
+    })), state);
+    O.sortable(document.querySelector('table.tbl thead'), state, render);
+    $('#tbody').innerHTML = list.length ? list.map(rowHtml).join('')
+      : '<tr><td colspan="9"><div class="empty"><span class="serif">No borrow markets yet</span>Collateral markets appear here the moment a pool opens borrowing.</div></td></tr>';
+    const supplied = enriched.reduce((s, r) => s + r.supplyUsd, 0);
+    const borrowed = enriched.reduce((s, r) => s + r.borrowedUsd, 0);
+    const bApys = enriched.map(r => r.netBorrow);
+    const avg = bApys.length ? bApys.reduce((s, v) => s + v, 0) / bApys.length : null;
+    const set = (i, v) => { const el = $$('#stats .v')[i]; el.classList.remove('skel'); el.style.height = ''; el.innerHTML = v; };
+    set(0, O.num(enriched.length, 0));
+    set(1, O.compact(supplied));
+    set(2, O.compact(borrowed));
+    set(3, avg != null ? Number(avg).toFixed(2) + '%' : '-');
+    buildPlanner(enriched);
+  }
+
+  function buildPlanner(list) {
+    const sel = $('#planMarket');
+    if (!list.length) {
+      sel.innerHTML = '<option value="">No markets</option>';
+      $('#planBorrow').textContent = $('#planHealth').textContent = $('#planDrop').textContent = '-';
+      $('#planCost').textContent = $('#planEarn').textContent = $('#planNet').textContent = '-';
+      return;
+    }
+    sel.innerHTML = list.map((r, i) =>
+      `<option value="${i}">${O.esc((r.y.symbol || r.y.pool) + ' · ' + (r.y.project || ''))}</option>`).join('');
+    sel.addEventListener('change', () => { syncMax(); calc(); });
+    $('#planAmt').addEventListener('input', calc);
+    $('#planLtv').addEventListener('input', calc);
+    syncMax(); calc();
+
+    function cur() { return list[Number(sel.value)] || null; }
+    function syncMax() {
+      const r = cur(); const max = r && r.ltv != null ? Math.max(1, Math.round(r.ltv)) : 100;
+      const slider = $('#planLtv');
+      slider.max = String(max);
+      slider.value = String(Math.min(Number(slider.value), Math.round(max / 2)));
+      $('#ltvOut').textContent = slider.value + '%';
+    }
+    function calc() {
+      const r = cur(); if (!r) return;
+      const ltvPct = Number($('#planLtv').value);
+      $('#ltvOut').textContent = ltvPct + '%';
+      const coll = Math.max(0, Number($('#planAmt').value) || 0);
+      const debt = coll * ltvPct / 100;
+      const maxDebt = coll * (r.ltv != null ? r.ltv / 100 : 1);
+      const health = debt > 0 ? maxDebt / debt : Infinity;
+      const drop = debt > 0 ? Math.max(0, (1 - debt / maxDebt)) * 100 : 100;
+      const cost = debt * r.netBorrow / 100;
+      const earn = coll * (r.y.apy || 0) / 100;
+      $('#planBorrow').textContent = O.usd(debt, 0);
+      $('#planHealth').textContent = health === Infinity ? '-' : Number(health).toFixed(2);
+      $('#planDrop').textContent = Number(drop).toFixed(1) + '%';
+      $('#planCost').textContent = O.usd(cost, 2);
+      $('#planEarn').textContent = O.usd(earn, 2);
+      $('#planNet').textContent = O.usd(earn - cost, 2);
+    }
+  }
+
+  render();
+});
+</script>
+</body>
+</html>

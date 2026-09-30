@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Issuers | Opaline</title>
+<meta name="description" content="Meet the issuers behind every tokenized stock, ETF and treasury on Opaline. Compare size, market share and chain coverage.">
+<meta name="theme-color" content="#fbf8f4">
+<meta property="og:title" content="Issuers | Opaline">
+<meta property="og:description" content="Meet the issuers behind every tokenized stock, ETF and treasury on Opaline. Compare size, market share and chain coverage.">
+<meta property="og:image" content="/og.png">
+<link rel="icon" href="/logo-mark.svg" type="image/svg+xml">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="stylesheet" href="/styles.css">
+<script>try{document.documentElement.dataset.theme=JSON.parse(localStorage.getItem('opal:theme'))||(matchMedia('(prefers-color-scheme: dark)').matches?'dusk':'light')}catch(e){}</script>
+<script src="/shell.js" defer></script>
+</head>
+<body>
+<main>
+<section class="wrap" style="padding-top:40px">
+  <div class="page-head">
+    <div>
+      <span class="eyebrow rv">Who wraps the real world</span>
+      <h1 class="title rv rv-1">The <em>issuers</em></h1>
+      <p class="lead rv rv-2">Every token on Opaline is minted by an issuer that holds the underlying share or fund. Here is who they are, how big each book is and where they deploy.</p>
+    </div>
+  </div>
+
+  <div class="card spot rv" style="padding:26px" id="donutCard">
+    <div class="row between wrapf">
+      <div><span class="eyebrow">Market share</span><h2 class="h2" style="font-size:28px;margin-top:8px">Share of tokenized <em>market cap</em></h2></div>
+    </div>
+    <div class="row wrapf" id="donutBox" style="margin-top:18px;gap:28px;align-items:center">
+      <div class="skel" style="width:200px;height:200px;border-radius:50%"></div>
+      <div class="skel" style="height:150px;flex:1"></div>
+    </div>
+  </div>
+
+  <div class="grid g3" style="margin-top:22px" id="cards">
+    <div class="skel" style="height:240px"></div><div class="skel" style="height:240px"></div><div class="skel" style="height:240px"></div>
+  </div>
+</section>
+</main>
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+  const $ = O.$, esc = O.esc;
+  let data = [];
+  try { data = (await O.api('issuers', { ttl: 60000 })).issuers || []; } catch (e) { data = []; }
+
+  if (!data.length) {
+    $('#cards').innerHTML = '<div class="card" style="grid-column:1/-1"><div class="empty"><span class="serif">Issuer data is resting</span>The issuer snapshot did not load. Refresh in a moment and it will be here.</div></div>';
+    $('#donutBox').innerHTML = '';
+    return;
+  }
+
+  const top = data.slice(0, 8);
+  const rest = data.slice(8).reduce((s, x) => s + x.mcap, 0);
+  const items = top.map(x => ({ label: x.name, value: x.mcap }));
+  if (rest > 0) items.push({ label: 'Everyone else', value: rest });
+  const legend = items.map((it, i) =>
+    `<span class="row" style="gap:8px;font-size:13px"><span class="sw" style="background:${O.PALETTE[i % 10]}"></span>${esc(it.label)} <span class="faint mono">${(it.value / items.reduce((s, x) => s + x.value, 0) * 100).toFixed(1)}%</span></span>`).join('');
+  $('#donutBox').innerHTML = `${O.donut(items, 190, 30)}<div class="pie-legend">${legend}</div>`;
+
+  $('#cards').innerHTML = data.map((x, i) => `
+    <a class="card hover spot rv rv-${i % 4}" href="/issuer/${esc(x.id)}" style="padding:22px">
+      <div class="row between">
+        <div><b style="font-size:17px">${esc(x.name)}</b><div class="faint" style="font-size:12px">${x.count} asset${x.count === 1 ? '' : 's'}</div></div>
+        <span class="chip ${(O.CLASS[Object.keys(x.classes)[0]] || {}).tint || 'lav'}">${x.count} listed</span>
+      </div>
+      <div class="row" style="gap:8px;margin-top:14px;flex-wrap:wrap">
+        ${Object.keys(x.classes).map(c => O.classChip(c) + `<span class="faint" style="font-size:11px;margin-left:-4px">${x.classes[c]}</span>`).join(' ')}
+      </div>
+      <div class="kv" style="margin-top:12px"><span>Market cap</span><b class="mono">${O.compact(x.mcap)}</b></div>
+      <div class="kv"><span>24h volume</span><b class="mono">${O.compact(x.volume)}</b></div>
+      <div class="kv"><span>Chains</span><b style="font-size:12px;text-align:right">${x.chains.map(c => esc(O.chainName(c))).join(', ')}</b></div>
+      <div class="row between" style="margin-top:16px;align-items:flex-end">
+        <div class="row">${(x.top || []).slice(0, 4).map(t => O.img(t.image, t.symbol)).join('')}</div>
+        <span class="chip">View issuer</span>
+      </div>
+    </a>`).join('');
+  O.reveal();
+});
+</script>
+</body></html>

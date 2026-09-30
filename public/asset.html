@@ -1,0 +1,296 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Asset | Opaline</title>
+<meta name="description" content="Live price, chart, chains and every issuer of one tokenized asset. Compare wrappers, set alerts and trade in one tap.">
+<meta name="theme-color" content="#fbf8f4">
+<meta property="og:title" content="Asset | Opaline">
+<meta property="og:description" content="Live price, chart, chains and every issuer of one tokenized asset. Compare wrappers, set alerts and trade in one tap.">
+<meta property="og:image" content="/og.png">
+<link rel="icon" href="/logo-mark.svg" type="image/svg+xml">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="stylesheet" href="/styles.css">
+<script>try{document.documentElement.dataset.theme=JSON.parse(localStorage.getItem('opal:theme'))||(matchMedia('(prefers-color-scheme: dark)').matches?'dusk':'light')}catch(e){}</script>
+<script src="/shell.js" defer></script>
+</head>
+<body>
+<main>
+<section class="wrap" style="padding-top:40px" id="root">
+  <div class="skel" style="height:120px"></div>
+  <div class="skel" style="height:320px;margin-top:18px"></div>
+  <div class="grid g4" style="margin-top:18px">
+    <div class="skel" style="height:90px"></div><div class="skel" style="height:90px"></div>
+    <div class="skel" style="height:90px"></div><div class="skel" style="height:90px"></div>
+  </div>
+</section>
+</main>
+<style>
+.hero-img{width:74px;height:74px;border-radius:24px;object-fit:cover;background:var(--bg2);border:1px solid var(--line)}
+.range-tabs button{min-width:52px}
+.chain-card .mono{word-break:break-all}
+.stat .v{font-size:30px}
+</style>
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+  const $ = O.$, esc = O.esc, $$ = O.$$;
+  const id = decodeURIComponent((location.pathname.split('/')[2] || '')).toLowerCase();
+  const RANGES = [['1D', '1'], ['7D', '7'], ['1M', '30'], ['3M', '90'], ['1Y', '365'], ['MAX', 'max']];
+  let A = null, D = null, range = '7', chartPts = null, ALL = [];
+
+  const fmtRange = (lo, hi) => (lo == null || hi == null) ? '-' : O.usd(lo) + ' to ' + O.usd(hi);
+  const expFor = c => O.isSol(c.chainId) ? 'https://solscan.io/token/' + encodeURIComponent(c.address || '')
+    : (((O.CHAINS[c.chainId] || {}).exp) || 'https://etherscan.io') + '/token/' + (c.address || '');
+
+  function notFound() {
+    document.title = 'Asset not found | Opaline';
+    $('#root').innerHTML = '<div class="card" style="margin-top:40px"><div class="empty"><span class="serif">Asset not found</span>We could not find that asset. It may have been delisted or the link is off by a letter.<div class="row" style="justify-content:center;margin-top:18px"><a class="btn btn-grad" href="/markets">Back to markets</a></div></div></div>';
+  }
+
+  function hero() {
+    const ch = (A.ch24h != null ? A.ch24h : (D && D.ch24h));
+    $('#hTitle').innerHTML = `${esc(A.name)} <em>${esc(A.symbol)}</em>`;
+    document.title = `${A.name} (${A.symbol}) price | Opaline`;
+    $('#hLead').textContent = `Tokenized by ${A.issuerName || 'an independent issuer'}, live on ${(A.chains || []).length || 1} chain${(A.chains || []).length === 1 ? '' : 's'}. Self-custodial trading, no added fees.`;
+    $('#heroTop').innerHTML = `
+      ${O.img(A.image, A.name)}
+      <div>
+        <div class="row wrapf" style="gap:8px">${O.classChip(A.class)}
+          <a class="chip" href="/issuer/${esc(A.issuer)}">${esc(A.issuerName || A.issuer)}</a>
+          ${O.starBtn(A.id)}
+        </div>
+        <div class="row wrapf" style="align-items:baseline;gap:14px;margin-top:10px">
+          <span class="serif" style="font-size:clamp(38px,5vw,58px);line-height:1">${O.usd(A.price)}</span>
+          <span class="mono ${O.pctCls(ch)}" style="font-size:17px;font-weight:700">${O.pct(ch)} <span class="faint" style="font-weight:600;font-size:12px">24h</span></span>
+        </div>
+      </div>`;
+    $('#heroBtns').innerHTML = `
+      <button class="btn btn-grad btn-lg magnet" data-buy="${esc(A.id)}">Buy ${esc(A.symbol)}</button>
+      <button class="btn btn-ghost btn-lg" data-buy="${esc(A.id)}" data-side="sell">Sell</button>`;
+  }
+
+  function statsGrid() {
+    const p = A.price, ath = A.ath || (D && D.ath);
+    const dist = (p != null && ath) ? ((p - ath) / ath * 100) : null;
+    const cards = [
+      ['Market cap', O.compact(A.mcap || (D && D.mcap))],
+      ['24h volume', O.compact(A.volume || (D && D.volume))],
+      ['24h range', fmtRange(A.low24, A.high24)],
+      ['All time high', ath ? O.usd(ath) : '-', dist != null ? `${Math.abs(dist).toFixed(1)}% ${dist >= 0 ? 'above' : 'below'}` : ''],
+      ['Circulating supply', A.supply ? O.num(A.supply, 0) : '-'],
+      ['7d change', O.pct(A.ch7d != null ? A.ch7d : (D && D.ch7d))],
+      ['30d change', O.pct(D ? D.ch30d : null)],
+      ['1y change', O.pct(D ? D.ch1y : null)]
+    ];
+    $('#stats').innerHTML = cards.map((c, i) =>
+      `<div class="card spot rv rv-${i % 4}" style="padding:18px"><div class="stat"><div class="k">${c[0]}</div><div class="v" style="${c[0].includes('change') ? 'font-size:26px' : ''}">${c[1]}</div>${c[2] ? `<div class="s">${c[2]}</div>` : ''}</div></div>`).join('');
+    $$('#stats .v').forEach((el, i) => { const cls = i >= 5 && i <= 7 ? O.pctCls([A.ch7d != null ? A.ch7d : (D && D.ch7d), D && D.ch30d, D && D.ch1y][i - 5]) : ''; if (cls) el.classList.add(cls); });
+  }
+
+  function chains() {
+    const cs = A.chains || [];
+    if (!cs.length) { $('#chains').innerHTML = '<div class="card"><div class="empty"><span class="serif">No contract addresses listed</span>This wrapper has not published contract addresses yet. Trading still routes through the best available venue.</div></div>'; return; }
+    $('#chains').innerHTML = `<div class="grid g3">${cs.map((c, i) => `
+      <div class="card hover spot rv rv-${i % 3} chain-card" style="padding:18px">
+        <div class="row between"><b>${esc(O.chainName(c.chainId))}</b><span class="chip ${i % 2 ? 'mint' : 'lav'}">Live</span></div>
+        <div class="mono faint" style="font-size:12px;margin-top:10px">${esc(c.address || 'Address pending')}</div>
+        <div class="row" style="margin-top:14px;gap:8px">
+          <button class="btn btn-sm btn-soft" data-copy="${esc(c.address || '')}">Copy</button>
+          ${c.address ? `<a class="btn btn-sm btn-ghost" target="_blank" rel="noopener" href="${esc(expFor(c))}">Explorer</a>` : ''}
+        </div>
+      </div>`).join('')}</div>`;
+    $$('[data-copy]').forEach(b => b.onclick = () => { navigator.clipboard.writeText(b.dataset.copy); O.toast('Contract address copied', 'ok'); });
+  }
+
+  function others() {
+    const list = ALL.filter(x => x.id !== A.id && x.underlying === A.underlying && x.class === A.class && x.price != null);
+    const sec = $('#othersSec');
+    if (!list.length) { sec.innerHTML = '<div class="card"><div class="empty"><span class="serif">Single issuer</span>This is the only tokenized wrapper of ' + esc(A.underlying) + ' on Opaline right now.</div></div>'; return; }
+    const cheapest = Math.min.apply(null, list.map(x => x.price).concat(A.price != null ? [A.price] : []));
+    sec.innerHTML = `<div class="tbl-wrap"><table class="tbl"><thead><tr>
+      <th>Asset</th><th>Issuer</th><th class="r">Price</th><th class="r">Premium vs cheapest</th><th class="r">24h volume</th><th></th>
+      </tr></thead><tbody>
+      <tr style="background:color-mix(in srgb,var(--mint) 18%,transparent)">
+        <td><span class="asset-cell">${O.img(A.image)}<span><b>${esc(A.symbol)}</b><small>${esc(A.name)}</small></span></span></td>
+        <td><a class="muted" href="/issuer/${esc(A.issuer)}">${esc(A.issuerName || A.issuer)}</a></td>
+        <td class="r mono">${O.usd(A.price)}</td>
+        <td class="r mono ${A.price <= cheapest + 1e-9 ? 'up' : 'faint'}">${A.price <= cheapest + 1e-9 ? 'cheapest' : O.pct((A.price - cheapest) / cheapest * 100)}</td>
+        <td class="r mono">${O.compact(A.volume)}</td>
+        <td class="r"><button class="btn btn-sm btn-soft" data-buy="${esc(A.id)}">Trade</button></td>
+      </tr>
+      ${list.sort((x, y) => x.price - y.price).map(x => `
+      <tr data-id="${esc(x.id)}">
+        <td><span class="asset-cell">${O.img(x.image)}<span><b>${esc(x.symbol)}</b><small>${esc(x.name)}</small></span></span></td>
+        <td><a class="muted" href="/issuer/${esc(x.issuer)}">${esc(x.issuerName || x.issuer)}</a></td>
+        <td class="r mono">${O.usd(x.price)}</td>
+        <td class="r mono ${O.pctCls((x.price - cheapest) / cheapest * 100)}">${O.pct((x.price - cheapest) / cheapest * 100)}</td>
+        <td class="r mono">${O.compact(x.volume)}</td>
+        <td class="r"><button class="btn btn-sm btn-soft" data-buy="${esc(x.id)}">Trade</button></td>
+      </tr>`).join('')}
+      </tbody></table></div>
+      <p class="muted" style="font-size:13px;margin-top:10px">Every row tracks ${esc(A.underlying)} one for one. The spread is the real cost of picking the wrong wrapper.</p>`;
+  }
+
+  function about() {
+    const d = (D && D.description) || '';
+    const box = $('#about');
+    if (!d) { box.innerHTML = '<div class="card"><div class="empty"><span class="serif">No description yet</span>We have not published a writeup for this asset yet. The numbers above come straight from live market data.</div></div>'; return; }
+    const long = d.length > 420;
+    box.innerHTML = `<div class="card spot rv" style="padding:26px">
+      <h2 class="h2" style="font-size:26px">About <em>${esc(A.name)}</em></h2>
+      <p class="muted" id="aboutTxt" style="margin-top:12px;white-space:pre-line">${esc(long ? d.slice(0, 420) : d)}${long ? '...' : ''}</p>
+      ${D.home ? `<a class="btn btn-sm btn-soft" style="margin-top:14px" target="_blank" rel="noopener" href="${esc(D.home)}">Official site</a>` : ''}
+      ${long ? `<button class="btn btn-sm btn-ghost" style="margin-top:14px;margin-left:8px" id="aboutMore">Read more</button>` : ''}
+    </div>`;
+    if (long) $('#aboutMore').onclick = e => {
+      const open = e.target.textContent === 'Read more';
+      $('#aboutTxt').textContent = open ? d : d.slice(0, 420) + '...';
+      e.target.textContent = open ? 'Show less' : 'Read more';
+    };
+  }
+
+  async function pools() {
+    const sec = $('#pools');
+    try {
+      const j = await O.api('pools?q=' + encodeURIComponent(A.symbol), { ttl: 120000 });
+      const top = (j.pairs || []).filter(p => p.liq != null).sort((a, b) => b.liq - a.liq).slice(0, 6);
+      if (!top.length) { sec.innerHTML = '<div class="card"><div class="empty"><span class="serif">No tracked pools</span>No deep on-chain pools quote ' + esc(A.symbol) + ' right now.</div></div>'; return; }
+      sec.innerHTML = `<div class="grid g3">${top.map((p, i) => `
+        <a class="card hover spot rv rv-${i % 3}" style="padding:18px" target="_blank" rel="noopener" href="${esc(p.url)}">
+          <div class="row between"><b>${esc(p.base && p.base.symbol ? p.base.symbol : A.symbol)} / ${esc(p.quote && p.quote.symbol ? p.quote.symbol : '?')}</b><span class="chip">${esc(p.dex || '')}</span></div>
+          <div class="row between" style="margin-top:12px"><span class="faint" style="font-size:12px">${esc(p.chain)}</span><span class="mono ${O.pctCls(p.ch24)}">${O.pct(p.ch24)}</span></div>
+          <div class="kv" style="margin-top:8px"><span>Liquidity</span><b class="mono">${O.compact(p.liq)}</b></div>
+          <div class="kv"><span>24h volume</span><b class="mono">${O.compact(p.vol24)}</b></div>
+        </a>`).join('')}</div>`;
+    } catch (e) {
+      sec.innerHTML = '<div class="card"><div class="empty"><span class="serif">Pools unavailable</span>Pool data did not load this time. Everything else on this page is live.</div></div>';
+    }
+  }
+
+  async function loadChart() {
+    const box = $('#chart');
+    box.innerHTML = '<div class="skel" style="height:300px"></div>';
+    try {
+      const j = await O.api(`chart/${encodeURIComponent(A.id)}?days=${range === '1' ? '1' : range === '7' ? '7' : range === '30' ? '30' : range === '90' ? '90' : range === '365' ? '365' : 'max'}`, { ttl: 300000 });
+      chartPts = j.prices || [];
+      if (chartPts.length < 2) { box.innerHTML = '<div class="empty">No chart data yet</div>'; return; }
+      O.areaChart(box, chartPts, { height: 320 });
+      const first = chartPts[0][1], last = chartPts[chartPts.length - 1][1], ch = (last - first) / first * 100;
+      $('#rangeChange').innerHTML = `<span class="mono ${O.pctCls(ch)}" style="font-weight:700">${O.pct(ch)}</span> <span class="faint" style="font-size:12px">over ${RANGES.find(r => r[0] === $('#rangeTabs .on').textContent)[0] === '1D' ? 'the last day' : 'the selected range'}</span>`;
+    } catch (e) {
+      box.innerHTML = '<div class="empty"><span class="serif">Chart unavailable</span>Price history did not load. The live price above is still current.</div>';
+    }
+  }
+
+  function alertForm() {
+    const form = $('#alertForm');
+    form.addEventListener('submit', async e => {
+      e.preventDefault();
+      const type = $('#alType').value;
+      const raw = $('#alVal').value.trim().replace(/[^0-9.]/g, '');
+      const val = parseFloat(raw);
+      if (!val || val <= 0) return O.toast('Enter a target price first', 'err');
+      const ok = await O.askNotify();
+      const alerts = O.store.get('alerts', []);
+      alerts.unshift({ id: A.id, type, value: val, created: Date.now() });
+      O.store.set('alerts', alerts);
+      renderAlerts();
+      O.toast(`${esc(A.symbol)} alert set: ${type} ${O.usd(val)}${ok ? '. We will ping you when it hits.' : ''}`, 'ok');
+      form.reset();
+    });
+    renderAlerts();
+  }
+  function renderAlerts() {
+    const mine = O.store.get('alerts', []).filter(a => a.id === A.id);
+    $('#alList').innerHTML = mine.length ? mine.map((a, i) =>
+      `<div class="kv"><span><span class="chip rose">${a.type}</span> <span class="mono">${O.usd(a.value)}</span>${a.fired ? ' <span class="chip mint">fired</span>' : ''}</span><button class="icon-btn" data-del="${i}" aria-label="Remove alert">${O.icon.x}</button></div>`).join('')
+      : '<p class="faint" style="font-size:13px">No alerts yet. Set one and we will watch the tape for you.</p>';
+    $$('#alList [data-del]').forEach(b => b.onclick = () => {
+      const all = O.store.get('alerts', []);
+      const mine2 = all.filter(a => a.id === A.id);
+      const victim = mine2[+b.dataset.del];
+      const idx = all.indexOf(victim);
+      if (idx >= 0) { all.splice(idx, 1); O.store.set('alerts', all); renderAlerts(); }
+    });
+  }
+
+  /* --- boot --- */
+  const [map, all] = await Promise.all([O.assetMap().catch(() => ({})), O.assets().catch(() => [])]);
+  ALL = all;
+  A = map[id];
+  if (!A) return notFound();
+  const spark = A.spark;
+  $('#root').innerHTML = `
+    <div class="page-head">
+      <div>
+        <span class="eyebrow rv">Tokenized real world asset</span>
+        <h1 class="title rv rv-1" id="hTitle">Loading</h1>
+        <p class="lead rv rv-2" id="hLead"></p>
+      </div>
+    </div>
+    <div class="grid" style="grid-template-columns:1.5fr 1fr;gap:18px;align-items:stretch" id="heroGrid">
+      <div class="card spot rv" style="padding:26px">
+        <div class="row wrapf" style="gap:18px" id="heroTop"></div>
+        <div class="row wrapf" style="gap:12px;margin-top:22px" id="heroBtns"></div>
+      </div>
+      <div class="card tint-rose flat rv rv-1" style="padding:22px">
+        <div class="row between"><b>Price alert</b>${O.icon.bell}</div>
+        <form id="alertForm" style="margin-top:12px">
+          <div class="row" style="gap:8px">
+            <select class="input" id="alType" style="max-width:120px"><option value="above">Above</option><option value="below">Below</option></select>
+            <input class="input mono" id="alVal" inputmode="decimal" placeholder="${A.price ? O.usd(A.price).replace(/[^0-9.,$]/g, '') : 'Target price'}">
+            <button class="btn btn-primary btn-sm" type="submit">Set</button>
+          </div>
+        </form>
+        <div id="alList" style="margin-top:12px"></div>
+      </div>
+    </div>
+    <div class="card spot rv" style="padding:22px;margin-top:18px">
+      <div class="row between wrapf">
+        <div class="tabs range-tabs" id="rangeTabs">${RANGES.map(r => `<button data-d="${r[1]}" class="${r[0] === '7D' ? 'on' : ''}">${r[0]}</button>`).join('')}</div>
+        <span id="rangeChange" style="font-size:14px"></span>
+      </div>
+      <div id="chart" style="margin-top:14px;position:relative"><div class="skel" style="height:300px"></div></div>
+    </div>
+    <div class="grid g4" style="margin-top:18px" id="stats"></div>
+    <div style="margin-top:56px">
+      <div class="page-head"><div><span class="eyebrow rv">Contracts</span><h2 class="h2 rv rv-1">Available <em>on-chain</em></h2></div></div>
+      <div id="chains"></div>
+    </div>
+    <div style="margin-top:56px" id="othersSec">
+      <div class="page-head"><div><span class="eyebrow rv">Issuer spreads</span><h2 class="h2 rv rv-1">Same stock, <em>other issuers</em></h2></div></div>
+    </div>
+    <div style="margin-top:56px" id="about"></div>
+    <div style="margin-top:56px">
+      <div class="page-head"><div><span class="eyebrow rv">On-chain venues</span><h2 class="h2 rv rv-1">Deepest <em>liquidity pools</em></h2></div></div>
+      <div id="pools"><div class="skel" style="height:120px"></div></div>
+    </div>`;
+  window.scrollTo(0, 0);
+  hero();
+  statsGrid();
+  chains();
+  others();
+  about();
+  alertForm();
+  pools();
+  O.reveal();
+
+  $('#rangeTabs').addEventListener('click', e => {
+    const b = e.target.closest('button[data-d]'); if (!b || b.classList.contains('on')) return;
+    $$('#rangeTabs button').forEach(x => x.classList.toggle('on', x === b));
+    range = b.dataset.d;
+    loadChart();
+  });
+
+  try { D = await O.api('asset/' + encodeURIComponent(id), { ttl: 300000 }); } catch (e) { D = null; }
+  if (D) {
+    if (!A.image && D.image) A.image = D.image;
+    if (A.price == null && D.price != null) A.price = D.price;
+    statsGrid(); about();
+  }
+  loadChart();
+  if (spark && spark.length < 2) $('#rangeChange').textContent = '';
+});
+</script>
+</body></html>

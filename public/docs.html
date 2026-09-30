@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Docs | Opaline</title>
+<meta name="description" content="How Opaline routes, what it charges, where data comes from and how your keys stay yours.">
+<meta name="theme-color" content="#fbf8f4">
+<meta property="og:title" content="Docs | Opaline">
+<meta property="og:description" content="How Opaline routes, what it charges, where data comes from and how your keys stay yours.">
+<meta property="og:image" content="/og.png">
+<link rel="icon" href="/logo-mark.svg" type="image/svg+xml">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="stylesheet" href="/styles.css">
+<script>try{document.documentElement.dataset.theme=JSON.parse(localStorage.getItem('opal:theme'))||(matchMedia('(prefers-color-scheme: dark)').matches?'dusk':'light')}catch(e){}</script>
+<script src="/shell.js" defer></script>
+</head>
+<body>
+<style>
+.docs-grid{display:grid;grid-template-columns:250px 1fr;gap:44px;align-items:start}
+.toc{position:sticky;top:96px;display:flex;flex-direction:column;gap:2px}
+.toc a{font-size:13.5px;color:var(--ink2);text-decoration:none;padding:7px 12px;border-radius:10px;border-left:2px solid transparent;transition:all .2s var(--ease)}
+.toc a:hover{background:var(--bg2);color:var(--ink)}
+.toc a.on{color:var(--ink);font-weight:700;border-left-color:var(--grad);background:var(--bg2)}
+.doc-sec{scroll-margin-top:110px;max-width:720px}
+.doc-sec p{font-size:15.5px;line-height:1.7;color:var(--ink2);margin:12px 0}
+.doc-sec p b,.doc-sec li b{color:var(--ink)}
+.doc-sec ul{margin:12px 0 0;padding-left:20px;color:var(--ink2);font-size:15px;line-height:1.8}
+.doc-faq{border:1px solid var(--line);border-radius:16px;margin-bottom:10px;overflow:hidden;background:var(--card)}
+.doc-faq button{all:unset;display:flex;justify-content:space-between;align-items:center;width:100%;box-sizing:border-box;padding:16px 20px;cursor:pointer;font-weight:700;font-size:15px;color:var(--ink)}
+.doc-faq .fa-b{display:none;padding:0 20px 16px;font-size:14.5px;line-height:1.65;color:var(--ink2)}
+.doc-faq.open .fa-b{display:block}
+.doc-faq .fa-x{transition:transform .25s var(--ease);font-size:20px;line-height:1}
+.doc-faq.open .fa-x{transform:rotate(45deg)}
+@media(max-width:900px){.docs-grid{grid-template-columns:1fr}.toc{position:static;flex-direction:row;flex-wrap:wrap;gap:6px;margin-bottom:8px}}
+</style>
+<section class="wrap" style="padding-top:40px">
+  <div class="page-head">
+    <div>
+      <span class="eyebrow rv">How Opaline works</span>
+      <h1 class="title rv rv-1">The <em>docs</em></h1>
+      <p class="lead rv rv-2">Everything about routing, issuers, strategies, data and custody, in plain language.</p>
+    </div>
+  </div>
+
+  <div class="docs-grid">
+    <nav class="toc rv" id="toc">
+      <a href="#what">What Opaline is</a>
+      <a href="#routing">How routing works</a>
+      <a href="#chains">Chains and issuers</a>
+      <a href="#buying">Buying and selling</a>
+      <a href="#baskets">Baskets and sharing</a>
+      <a href="#strategies">Strategies</a>
+      <a href="#orders">Limit orders, alerts and auto-invest</a>
+      <a href="#yield">Yield and lending data</a>
+      <a href="#portfolio">Portfolio tracking</a>
+      <a href="#agent">Agent</a>
+      <a href="#custody">Self custody and security</a>
+      <a href="#sources">Data sources</a>
+      <a href="#faq">FAQ</a>
+    </nav>
+
+    <div class="col" style="gap:44px">
+      <div class="doc-sec rv" id="what">
+        <h2 class="h2">What Opaline <em>is</em></h2>
+        <p>Opaline is a marketplace for tokenized real-world assets: stocks, ETFs, gold, treasuries and private credit, issued on public blockchains by regulated and unregulated issuers alike. It brings every issuer onto one screen, prices them live, and routes trades across chains.</p>
+        <p>Opaline is not a custodian and not a broker. It never holds your assets, never asks for a deposit, and adds no fee of its own. When you buy, tokens go straight to your wallet. When you sell, they go straight from it.</p>
+      </div>
+
+      <div class="doc-sec rv" id="routing">
+        <h2 class="h2">How routing <em>works</em></h2>
+        <p>Every trade is routed through LI.FI, an aggregator that sits on top of dozens of bridges and decentralized exchanges. When you press buy, Opaline asks the aggregator for the cheapest path from what you hold to the asset you want. You see the full quote: the amount in, the amount out, the route, the fees and the gas. One signature submits the whole thing.</p>
+        <p>If you pay with a token the destination contract has not seen before, an approval transaction is requested first. That is standard for ERC-20 tokens: approve the router to spend the exact amount, then sign the swap. Native gas tokens need no approval.</p>
+        <p>After signing, the trade is tracked until the destination chain confirms. The status appears in your recent activity with a link to the explorer.</p>
+      </div>
+
+      <div class="doc-sec rv" id="chains">
+        <h2 class="h2">Supported chains and <em>issuers</em></h2>
+        <p>Opaline routes across every chain the aggregator supports, more than twenty EVM networks plus Solana. Assets from every major issuer are included: tokenized stock wrappers, ETF mantles, gold tokens, treasury tokens and private credit pools.</p>
+        <div id="issuerLive" style="margin-top:18px"><div class="skel" style="height:220px"></div></div>
+      </div>
+
+      <div class="doc-sec rv" id="buying">
+        <h2 class="h2">Buying and <em>selling</em></h2>
+        <p>Pick an asset anywhere in the app and press buy. The trade sheet opens with a quote in about a second. Choose what to pay with: any token you hold on any supported chain. Slippage is configurable, and the route is shown before you sign.</p>
+        <p>Selling works the same way in reverse. If the same asset trades on several chains, you can buy on one chain and sell on another; the bridge hop is part of the route.</p>
+        <p>Every quote is a firm estimate at sign time. If the price moves past your slippage before confirmation, the trade reverts rather than filling at a worse price.</p>
+      </div>
+
+      <div class="doc-sec rv" id="baskets">
+        <h2 class="h2">Baskets and <em>sharing</em></h2>
+        <p>A basket is a named set of assets with weights. Build one, save it, and buy the whole thing in one pass: Opaline splits the amount by weight and runs one trade per asset. The agent can build one from a sentence, like <b>build a basket of NVDA, AAPL and gold</b>.</p>
+        <p>Baskets can be shared. A share link encodes the assets and weights so anyone can preview it and buy the same mix. Shared baskets are content, not funds: nothing moves until someone decides to buy.</p>
+      </div>
+
+      <div class="doc-sec rv" id="strategies">
+        <h2 class="h2">Strategies</h2>
+        <p>Strategies turn a market view into a repeatable action. The three Opaline ships with are limit orders (buy or sell at a price you choose), auto-invest plans (recurring buys on a schedule), and price alerts (get told when a line is crossed). All three run locally and are covered below.</p>
+      </div>
+
+      <div class="doc-sec rv" id="orders">
+        <h2 class="h2">Limit orders, alerts and <em>auto-invest</em></h2>
+        <p>These three features run entirely in your browser. Your orders, alerts and plans are stored in local storage, checked against live prices while Opaline is open, and never sent to a server.</p>
+        <ul>
+          <li><b>Limit orders.</b> You set a price and a size. When the market crosses your limit, the order is marked triggered and you get a notification. You then press Fill now and sign the trade yourself.</li>
+          <li><b>Price alerts.</b> Above, below, or a percentage move in 24 hours. When one fires you get a notification, and it waits for you to re-arm it.</li>
+          <li><b>Auto-invest.</b> A plan buys your assets on a rhythm: daily, weekly, biweekly or monthly. Each run opens the trade sheet for you to sign. Pause, edit or delete any time.</li>
+        </ul>
+        <p>Because nothing executes without your signature, a closed tab means nothing fills. Open Opaline when it matters: that is the trade for keeping custody of your own keys.</p>
+      </div>
+
+      <div class="doc-sec rv" id="yield">
+        <h2 class="h2">Yield and lending <em>data sources</em></h2>
+        <p>Yield and lending figures come from DefiLlama, which indexes on-chain pools and money markets. Opaline shows APY, TVL, the project and the chain for each pool, and links to the underlying data. The figures are point-in-time reads of on-chain reality, not promises: rates on-chain move constantly.</p>
+      </div>
+
+      <div class="doc-sec rv" id="portfolio">
+        <h2 class="h2">Portfolio <em>tracking</em></h2>
+        <p>The portfolio page reads balances across every supported chain, either from your connected wallet or from any address you paste in. Tokenized assets are recognized by their contract addresses and matched to live market prices, so real-world positions are valued with the market, not with stale marks.</p>
+        <p>Everything is read only. Looking at a portfolio never requires a signature, and a watched address is stored only in your browser.</p>
+      </div>
+
+      <div class="doc-sec rv" id="agent">
+        <h2 class="h2">The <em>Agent</em></h2>
+        <p>The agent turns sentences into market answers. The built-in engine runs in your browser and handles a fixed set of commands: prices, issuer comparisons, top movers, best yields, basket building, price alerts and trades. Type <b>help</b> on the agent page for the full list.</p>
+        <p>For anything outside that list, you can supply your own model key in the agent settings. The key is stored only in your browser's local storage, and requests go directly from your browser to the provider. Opaline never sees it. Without a key, the built-in engine still covers every command above.</p>
+      </div>
+
+      <div class="doc-sec rv" id="custody">
+        <h2 class="h2">Self custody and <em>security</em></h2>
+        <p>Your keys stay in your wallet, full stop. Opaline never asks for a seed phrase, never holds a balance, and never takes custody mid-trade: the router moves assets from your wallet to your wallet in one transaction.</p>
+        <p>Opaline charges zero fees of its own. What you pay is gas plus the bridge or exchange fee inside the route, and every quote shows that breakdown before you sign. Sign only what you have read. An approval should always match the amount you intend to trade.</p>
+      </div>
+
+      <div class="doc-sec rv" id="sources">
+        <h2 class="h2">Data <em>sources</em></h2>
+        <ul>
+          <li><b>Prices, market caps, volume, supply:</b> CoinGecko public API, refreshed continuously.</li>
+          <li><b>Routing, bridges, chains, balances:</b> LI.FI aggregation API.</li>
+          <li><b>Pool and pair discovery:</b> DexScreener.</li>
+          <li><b>Yield and lending rates:</b> DefiLlama.</li>
+        </ul>
+        <p>All four are read as public data. Nothing you do on Opaline sends your keys, your wallet address or your orders to any of them beyond the calls needed to serve the page you are on.</p>
+      </div>
+
+      <div class="doc-sec rv" id="faq">
+        <h2 class="h2">Frequently <em>asked</em></h2>
+        <div style="margin-top:16px" id="faqs"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+  const esc = O.esc;
+  const $ = O.$, $$ = O.$$;
+
+  /* live issuer list */
+  try {
+    const d = await O.api('issuers', {ttl: 60000});
+    const iss = (d.issuers || []).slice().sort((a, b) => b.count - a.count);
+    const chains = new Set(); iss.forEach(i => (i.chains || []).forEach(c => chains.add(c)));
+    $('#issuerLive').innerHTML = `
+      <div class="grid g4" style="margin-bottom:16px">
+        <div class="stat"><div class="k">Issuers</div><div class="v">${iss.length}</div></div>
+        <div class="stat"><div class="k">Assets</div><div class="v">${iss.reduce((s, i) => s + i.count, 0)}</div></div>
+        <div class="stat"><div class="k">Classes</div><div class="v">${new Set(iss.flatMap(i => Object.keys(i.classes || {}))).size}</div></div>
+        <div class="stat"><div class="k">Chains</div><div class="v">${chains.size}</div></div>
+      </div>
+      <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Issuer</th><th class="r">Assets</th><th>Classes</th><th class="r">Market cap</th></tr></thead><tbody>
+        ${iss.map(i => `<tr><td><b>${esc(i.name)}</b></td><td class="r mono">${i.count}</td><td class="faint">${Object.keys(i.classes || {}).map(c => O.CLASS[c] ? O.CLASS[c].label : c).join(', ')}</td><td class="r mono">${O.compact(i.mcap)}</td></tr>`).join('')}
+      </tbody></table></div>`;
+  } catch (e) { $('#issuerLive').innerHTML = '<div class="empty"><span class="serif">Issuer data unavailable</span>Refresh to load the live issuer list.</div>'; }
+
+  /* FAQ accordion */
+  const QA = [
+    ['Do I need an account?', 'No. There is no sign up, no email and no deposit. Connect a wallet when you want to trade, or browse and watch any address without one.'],
+    ['What does Opaline charge?', 'Zero added fees. You pay network gas plus whatever the bridge or exchange inside the route charges, and every quote shows that breakdown before you sign.'],
+    ['Where do my keys live?', 'In your wallet. Opaline never sees a seed phrase or a private key, and never takes custody of assets. Trades move tokens from your wallet to your wallet.'],
+    ['Can I trade without connecting a wallet?', 'Browsing, alerts, baskets, orders, plans and the agent all work without a wallet. To sign a trade or an auto-invest run, a wallet is needed.'],
+    ['What happens if I close the tab while a limit order waits?', 'Nothing fills. Limit orders, alerts and auto-invest run in this browser, so Opaline needs to be open to detect a trigger. Nothing ever executes without your signature.'],
+    ['Are the tokenized stocks really backed?', 'That depends entirely on the issuer, not on Opaline. Each issuer documents its own structure and reserves. Opaline shows the same underlying from every issuer side by side so you can compare before you buy.'],
+    ['What does the agent do with my data?', 'The built-in engine runs in your browser and sends nothing anywhere. If you add your own model key, it is stored in your browser only and requests go straight from your browser to the provider.'],
+    ['Where does the market data come from?', 'Prices and market caps from CoinGecko, routing and balances from LI.FI, pool discovery from DexScreener, and yield rates from DefiLlama. All public APIs.']
+  ];
+  $('#faqs').innerHTML = QA.map(q => `<div class="doc-faq"><button type="button"><span>${esc(q[0])}</span><span class="fa-x">+</span></button><div class="fa-b">${esc(q[1])}</div></div>`).join('');
+  $$('.doc-faq button').forEach(b => b.onclick = () => b.parentElement.classList.toggle('open'));
+
+  /* TOC smooth scroll + active highlight */
+  $$('#toc a').forEach(a => a.onclick = e => {
+    e.preventDefault();
+    const el = $(a.getAttribute('href'));
+    if (el) el.scrollIntoView({behavior: 'smooth', block: 'start'});
+  });
+  const links = $$('#toc a');
+  const obs = new IntersectionObserver(es => {
+    es.forEach(en => { if (en.isIntersecting) links.forEach(a => a.classList.toggle('on', a.getAttribute('href') === '#' + en.target.id)); });
+  }, {rootMargin: '-15% 0px -70% 0px'});
+  $$('.doc-sec').forEach(s => obs.observe(s));
+});
+</script>
+</body>
+</html>

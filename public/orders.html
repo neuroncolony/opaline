@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Limit orders | Opaline</title>
+<meta name="description" content="Set a price, walk away. Orders live in your browser and you sign every fill.">
+<meta name="theme-color" content="#fbf8f4">
+<meta property="og:title" content="Limit orders | Opaline">
+<meta property="og:description" content="Set a price, walk away. Orders live in your browser and you sign every fill.">
+<meta property="og:image" content="/og.png">
+<link rel="icon" href="/logo-mark.svg" type="image/svg+xml">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="stylesheet" href="/styles.css">
+<script>try{document.documentElement.dataset.theme=JSON.parse(localStorage.getItem('opal:theme'))||(matchMedia('(prefers-color-scheme: dark)').matches?'dusk':'light')}catch(e){}</script>
+<script src="/shell.js" defer></script>
+</head>
+<body>
+<section class="wrap" style="padding-top:40px">
+  <div class="page-head">
+    <div>
+      <span class="eyebrow rv">Set the price you want</span>
+      <h1 class="title rv rv-1">Limit orders, <em>on your terms</em></h1>
+      <p class="lead rv rv-2">Orders live in your browser, not on a server. When price crosses your line, you get a notification and you sign the fill. Nothing executes without you.</p>
+    </div>
+  </div>
+
+  <div class="grid" style="grid-template-columns:.9fr 1.1fr;gap:22px;align-items:start">
+    <div class="card spot rv rv-1" style="padding:26px">
+      <div class="tabs" id="sideTabs" style="margin-bottom:18px">
+        <button class="on" data-side="buy">Buy</button><button data-side="sell">Sell</button>
+      </div>
+      <div class="field"><label class="lbl">Asset</label>
+        <div class="search"><input class="input" id="oSearch" placeholder="Search ticker, name or underlying" autocomplete="off"></div>
+        <div id="oPick" style="margin-top:10px;max-height:210px;overflow:auto"><div class="faint" style="font-size:13px;padding:6px 2px">Type to search about 560 assets.</div></div>
+      </div>
+      <div class="field"><label class="lbl">Limit price (USD)</label>
+        <input class="input" id="oLimit" type="number" step="any" min="0" placeholder="0.00">
+        <div class="faint" id="oFromMkt" style="font-size:12px;margin-top:6px"></div>
+      </div>
+      <div class="field"><label class="lbl">Size (USD)</label>
+        <input class="input" id="oUsd" type="number" step="any" min="1" placeholder="500">
+      </div>
+      <div class="field"><label class="lbl">Expiry</label>
+        <div class="row wrapf" id="oExp" style="gap:6px">
+          <button class="chip" data-ms="86400000" style="cursor:pointer">1 day</button>
+          <button class="chip on" data-ms="604800000" style="cursor:pointer">7 days</button>
+          <button class="chip" data-ms="2592000000" style="cursor:pointer">30 days</button>
+          <button class="chip" data-ms="0" style="cursor:pointer">Never</button>
+        </div>
+      </div>
+      <button class="btn btn-grad btn-block btn-lg" id="oSave" style="margin-top:20px">Place order</button>
+      <p class="faint" style="font-size:12px;margin-top:14px">When the market price hits your limit the order is marked triggered and you get a notification. Open Orders, press Fill now and sign. Non-custodial: your keys never leave your wallet.</p>
+    </div>
+
+    <div class="card rv rv-2" style="padding:26px">
+      <div class="tabs" id="oTabs">
+        <button class="on" data-tab="open">Open</button><button data-tab="triggered">Triggered</button><button data-tab="history">History</button>
+      </div>
+      <div id="oTbl" style="margin-top:18px"><div class="skel" style="height:220px"></div></div>
+    </div>
+  </div>
+</section>
+
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+  const esc = O.esc;
+  const $ = O.$, $$ = O.$$;
+  const ICON_SEARCH = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>';
+
+  let assets = [], st = {side: 'buy', pick: null, exp: 604800000, tab: 'open'};
+  try { assets = await O.assets(); } catch (e) {}
+  const byId = {}; assets.forEach(a => byId[a.id] = a);
+
+  /* asset picker */
+  const drawPick = () => {
+    const q = $('#oSearch').value.trim().toLowerCase();
+    const list = (q ? assets.filter(a => a.symbol.toLowerCase().includes(q) || a.name.toLowerCase().includes(q) || (a.underlying || '').toLowerCase().includes(q)) : assets.slice().sort((a, b) => (b.volume || 0) - (a.volume || 0)).slice(0, 12)).slice(0, 12);
+    $('#oPick').innerHTML = list.map(a => `<button data-p="${esc(a.id)}" style="display:flex;width:100%;align-items:center;gap:10px;padding:8px 10px;border:0;border-radius:12px;background:transparent;cursor:pointer;text-align:left">
+      ${O.img(a.image, a.symbol)}<span style="flex:1"><b>${esc(a.symbol)}</b> <span class="faint" style="font-size:12px">${esc(a.issuerName)} · ${a.chains.length} chains</span></span><b class="mono" style="font-size:13px">${O.usd(a.price)}</b></button>`).join('')
+      || '<div class="empty">No asset matches that search.</div>';
+    $$('[data-p]').forEach(b => b.onclick = () => { st.pick = byId[b.dataset.p]; $('#oSearch').value = st.pick.symbol + ' · ' + st.pick.issuerName; prefill(); drawPick(); });
+  };
+  const prefill = () => { if (!st.pick) return; $('#oLimit').value = st.pick.price; $('#oFromMkt').textContent = 'Market price: ' + O.usd(st.pick.price); };
+
+  $('#oSearch').oninput = drawPick; drawPick();
+
+  $$('#sideTabs button').forEach(b => b.onclick = () => { st.side = b.dataset.side; $$('#sideTabs button').forEach(x => x.classList.toggle('on', x === b)); });
+  $$('#oExp .chip').forEach(b => b.onclick = () => { st.exp = +b.dataset.ms; $$('#oExp .chip').forEach(x => x.classList.toggle('on', x === b)); });
+  $('#oLimit').oninput = () => {
+    if (!st.pick) return;
+    const v = parseFloat($('#oLimit').value);
+    $('#oFromMkt').innerHTML = v > 0 && st.pick.price ? 'Market ' + O.usd(st.pick.price) + ' · ' + (v >= st.pick.price ? '<span class="up">' + O.pct((v / st.pick.price - 1) * 100) + '</span>' : '<span class="down">' + O.pct((v / st.pick.price - 1) * 100) + '</span>') + ' from market' : 'Market price: ' + O.usd(st.pick.price);
+  };
+
+  $('#oSave').onclick = async () => {
+    if (!st.pick) return O.toast('Pick an asset first', 'err');
+    const limit = parseFloat($('#oLimit').value), usd = parseFloat($('#oUsd').value);
+    if (!(limit > 0) || !(usd > 0)) return O.toast('Enter a limit price and a USD size', 'err');
+    const orders = O.store.get('orders', []);
+    orders.unshift({id: st.pick.id, symbol: st.pick.symbol, side: st.side, limit, usd, created: Date.now(), expires: st.exp ? Date.now() + st.exp : null, status: 'open'});
+    O.store.set('orders', orders);
+    O.askNotify();
+    O.toast('Order placed. It lives in this browser and watches the market for you.', 'ok', 6000);
+    $('#oUsd').value = ''; drawTable();
+  };
+
+  /* table */
+  $$('#oTabs button').forEach(b => b.onclick = () => { st.tab = b.dataset.tab; $$('#oTabs button').forEach(x => x.classList.toggle('on', x === b)); drawTable(); });
+
+  const drawTable = async () => {
+    const el = $('#oTbl'), orders = O.store.get('orders', []);
+    let map = {}; try { map = await O.assetMap(); } catch (e) {}
+    const live = st.tab === 'open' ? orders.filter(o => o.status === 'open') : st.tab === 'triggered' ? orders.filter(o => o.status === 'triggered') : orders.filter(o => o.status !== 'open' && o.status !== 'triggered');
+    if (!live.length) { el.innerHTML = '<div class="empty"><span class="serif">No orders here</span>' + (st.tab === 'open' ? 'Place one with the form on the left.' : 'Nothing in this tab yet.') + '</div>'; return; }
+    el.innerHTML = '<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Asset</th><th>Side</th><th class="r">Limit</th><th class="r">Market</th><th class="r">Distance</th><th class="r">Size</th><th>Created</th><th>Expiry</th><th></th></tr></thead><tbody>' +
+      live.map(o => {
+        const a = map[o.id], p = a ? a.price : null;
+        const dist = p && o.limit ? (o.side === 'buy' ? (o.limit / p - 1) * 100 : (p / o.limit - 1) * 100) : null;
+        const exp = o.expires ? (o.expires < Date.now() && o.status === 'open' ? 'expired' : new Date(o.expires).toLocaleDateString([], {month: 'short', day: 'numeric'})) : 'Never';
+        return `<tr><td><span class="asset-cell">${O.img(a && a.image)}<span><b>${esc(o.symbol)}</b><small>${esc(a ? a.issuerName : '')}</small></span></span></td>
+        <td><span class="chip ${o.side === 'buy' ? 'mint' : 'peach'}">${o.side}</span></td>
+        <td class="r mono">${O.usd(o.limit)}</td><td class="r mono">${O.usd(p)}</td>
+        <td class="r ${O.pctCls(dist)}">${O.pct(dist)}</td><td class="r mono">${O.usd(o.usd)}</td>
+        <td class="faint">${O.ago(o.created)}</td><td class="faint">${exp}</td>
+        <td class="r">${o.status === 'triggered' ? `<button class="btn btn-primary btn-sm" data-fill="${esc(o.id)}">Fill now</button>` : o.status === 'open' ? `<button class="btn btn-danger btn-sm" data-cancel="${esc(o.id)}">Cancel</button>` : `<span class="chip">${esc(o.status)}</span>`}</td></tr>`;
+      }).join('') + '</tbody></table></div>';
+    $$('[data-cancel]', el).forEach(b => b.onclick = async () => {
+      if (!(await O.confirm('Cancel order', 'This stops watching ' + esc(oSymbol(b.dataset.cancel)) + '. Nothing has been signed.', 'Cancel order'))) return;
+      const os = O.store.get('orders', []); const x = os.find(y => y.id === b.dataset.cancel && y.status === 'open'); if (x) { x.status = 'cancelled'; O.store.set('orders', os); }
+    });
+    $$('[data-fill]', el).forEach(b => b.onclick = () => {
+      const o = O.store.get('orders', []).find(y => y.id === b.dataset.fill && y.status === 'triggered'); if (!o) return;
+      O.buy(o.id, {side: o.side, amount: String(o.usd), kind: 'limit', title: 'Fill limit ' + o.side + ' ' + o.symbol, onDone: () => {
+        const os = O.store.get('orders', []); const x = os.find(y => y.id === o.id && y.status === 'triggered'); if (x) { x.status = 'filled'; O.store.set('orders', os); }
+      }});
+    });
+  };
+  const oSymbol = id => { const o = O.store.get('orders', []).find(y => y.id === id); return o ? o.symbol : 'the order'; };
+  drawTable();
+  window.addEventListener('opal:store', e => { if (e.detail === 'orders') drawTable(); });
+  setInterval(drawTable, 30000);
+});
+</script>
+</body>
+</html>

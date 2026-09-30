@@ -1,4 +1,4 @@
-data/
+qa/*.png
 __pycache__/
-qa/
 *.pyc
+data/

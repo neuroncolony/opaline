@@ -1,0 +1,325 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Agent | Opaline</title>
+<meta name="description" content="Type what you want. Prices, comparisons, baskets and trades in plain English.">
+<meta name="theme-color" content="#fbf8f4">
+<meta property="og:title" content="Agent | Opaline">
+<meta property="og:description" content="Type what you want. Prices, comparisons, baskets and trades in plain English.">
+<meta property="og:image" content="/og.png">
+<link rel="icon" href="/logo-mark.svg" type="image/svg+xml">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="stylesheet" href="/styles.css">
+<script>try{document.documentElement.dataset.theme=JSON.parse(localStorage.getItem('opal:theme'))||(matchMedia('(prefers-color-scheme: dark)').matches?'dusk':'light')}catch(e){}</script>
+<script src="/shell.js" defer></script>
+</head>
+<body>
+<section class="wrap" style="padding-top:40px">
+  <div class="page-head">
+    <div>
+      <span class="eyebrow rv">Ask in plain English</span>
+      <h1 class="title rv rv-1">The <em>Agent</em></h1>
+      <p class="lead rv rv-2">Prices, comparisons, movers, baskets and trades. The built-in engine runs entirely in your browser. Add your own key to unlock open questions.</p>
+    </div>
+    <div class="row rv">
+      <button class="btn btn-soft" id="agClear">Clear chat</button>
+      <button class="icon-btn" id="agGear" title="Agent settings" aria-label="Agent settings" style="width:44px;height:44px;border-radius:50%"></button>
+    </div>
+  </div>
+
+  <div class="card spot rv rv-1" id="chatCard" style="padding:0;overflow:hidden">
+    <div id="chat" style="padding:26px;display:flex;flex-direction:column;gap:14px;min-height:380px;max-height:560px;overflow-y:auto"></div>
+    <div class="row wrapf" id="chips" style="padding:0 26px 14px;gap:8px"></div>
+    <div class="row" style="padding:14px 26px 22px;gap:10px;border-top:1px solid var(--line)">
+      <input class="input" id="agInput" placeholder="Try: buy 100 of NVDA, or price of gold" autocomplete="off" style="flex:1">
+      <button class="btn btn-primary" id="agSend">Send</button>
+    </div>
+  </div>
+</section>
+
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+  const esc = O.esc;
+  const $ = O.$, $$ = O.$$;
+  $('#agGear').innerHTML = O.icon.layers;
+
+  let assets = [];
+  try { assets = await O.assets(); } catch (e) {}
+  const routable = assets.filter(a => a.chains.length);
+  const byVol = assets.slice().sort((a, b) => (b.volume || 0) - (a.volume || 0));
+
+  /* ---------- asset resolution: underlying, symbol, or name substring. Prefer highest volume ---------- */
+  const findAsset = q => {
+    if (!q) return null;
+    const s = q.trim().toLowerCase();
+    if (!s) return null;
+    let m = assets.filter(a => (a.underlying || '').toLowerCase() === s);
+    if (m.length) return m.sort((a, b) => (b.volume || 0) - (a.volume || 0))[0];
+    m = assets.filter(a => a.symbol.toLowerCase() === s);
+    if (m.length) return m.sort((a, b) => (b.volume || 0) - (a.volume || 0))[0];
+    m = assets.filter(a => a.name.toLowerCase() === s);
+    if (m.length) return m.sort((a, b) => (b.volume || 0) - (a.volume || 0))[0];
+    m = assets.filter(a => a.symbol.toLowerCase().startsWith(s) && s.length >= 2);
+    if (m.length) return m.sort((a, b) => (b.volume || 0) - (a.volume || 0))[0];
+    m = assets.filter(a => a.name.toLowerCase().includes(s) && s.length >= 3);
+    if (m.length) return m.sort((a, b) => (b.volume || 0) - (a.volume || 0))[0];
+    return null;
+  };
+
+  /* ---------- chat store ---------- */
+  const load = () => O.store.get('chat', []);
+  const save = msgs => O.store.set('chat', msgs.slice(-50));
+  const bubble = (role, html) => `<div class="bub ${role}">${html}</div>`;
+  const scroll = () => { const c = $('#chat'); c.scrollTop = c.scrollHeight; };
+
+  const drawChat = () => {
+    const msgs = load();
+    $('#chat').innerHTML = msgs.length ? msgs.map(m => bubble(m.role, m.html)).join('')
+      : bubble('bot', 'Hi, I am the Opaline agent. Ask for a price, compare issuers, check top movers, or say something like <b>buy 100 of NVDA</b>. Type <b>help</b> to see everything I can do.');
+    $$('[data-agbuy]').forEach(b => b.onclick = () => { O.buy(b.dataset.agbuy, {amount: b.dataset.agamt, side: b.dataset.agside || 'buy'}); });
+    $$('[data-agalert]').forEach(b => b.onclick = () => alertFrom(b.dataset.agalert, b.dataset.agtype, b.dataset.agval));
+    $$('[data-agsave]').forEach(b => b.onclick = () => { saveBasket(b.dataset.agsave); });
+    scroll();
+  };
+  const push = (role, html) => { const m = load(); m.push({role, html, ts: Date.now()}); save(m); drawChat(); };
+
+  /* ---------- helpers ---------- */
+  const assetCard = (a, amount, side) => `
+    <div class="card flat" style="padding:14px 18px;margin-top:10px">
+      <div class="row between wrapf">
+        <span class="asset-cell">${O.img(a.image, a.symbol)}<span><b>${esc(a.symbol)}</b><small>${esc(a.issuerName)} · ${a.chains.length} chains</small></span></span>
+        <span style="text-align:right"><b class="mono">${O.usd(a.price)}</b><br><span class="${O.pctCls(a.ch24h)}" style="font-size:12px;font-weight:700">${O.pct(a.ch24h)} 24h</span></span>
+      </div>
+      ${amount ? `<button class="btn btn-grad btn-block" style="margin-top:12px" data-agbuy="${esc(a.id)}" data-agamt="${esc(String(amount))}" data-agside="${side || 'buy'}">${side === 'sell' ? 'Sell' : 'Buy'} ${esc(String(amount)) === '1' ? '' : '$' + esc(String(amount)) + ' of '}${esc(a.symbol)}</button>`
+        : `<div class="row" style="margin-top:12px;gap:8px"><button class="btn btn-soft btn-sm" data-agbuy="${esc(a.id)}" data-agside="buy">Buy</button><button class="btn btn-soft btn-sm" data-agbuy="${esc(a.id)}" data-agside="sell" data-agamt="1">Sell</button></div>`}
+    </div>`;
+
+  const alertFrom = (id, type, val) => {
+    const a = byId[id]; if (!a) return;
+    const alerts = O.store.get('alerts', []);
+    alerts.unshift({id: a.id, symbol: a.symbol, type, value: +val, created: Date.now(), fired: 0});
+    O.store.set('alerts', alerts);
+    O.toast('Alert armed on ' + esc(a.symbol), 'ok');
+  };
+
+  const saveBasket = raw => {
+    let items; try { items = JSON.parse(raw); } catch (e) { return; }
+    const b = O.store.get('baskets', []);
+    b.unshift({bid: O.uid(), name: 'Agent basket', items, created: Date.now()});
+    O.store.set('baskets', b);
+    O.toast('Basket saved. <a href="/baskets">Open baskets</a>', 'ok', 6000);
+  };
+
+  const issuersOf = u => assets.filter(a => (a.underlying || '').toLowerCase() === (u || '').toLowerCase())
+    .sort((a, b) => (a.price || 0) - (b.price || 0));
+
+  /* ---------- rule engine ---------- */
+  const num = s => { const m = String(s).replace(/[$,]/g, '').match(/\d+(\.\d+)?/); return m ? parseFloat(m[0]) : null; };
+
+  const respond = async text => {
+    const t = text.trim(), low = t.toLowerCase();
+
+    /* help */
+    if (/^(help|what can you do|capabilities)$/.test(low)) {
+      push('bot', `I can do all of this from the chat box:<br>
+        <b>buy 100 of NVDA</b> or <b>sell 50 of AAPL</b>, opens the trade sheet<br>
+        <b>price of X</b> or <b>X price</b>, live price with a sparkline<br>
+        <b>compare X</b>, every issuer of that underlying, cheapest first<br>
+        <b>cheapest X on Base</b>, filtered to one chain<br>
+        <b>top movers</b>, <b>gainers</b> or <b>losers</b>, the day's extremes<br>
+        <b>best yield</b>, top pools right now<br>
+        <b>build a basket of NVDA, AAPL and gold</b>, equal weight preview you can save<br>
+        <b>alert me when BTC above 100000</b>, arms a price alert<br>
+        <b>portfolio</b>, opens your portfolio page`);
+      return;
+    }
+    if (/portfolio/.test(low)) { push('bot', 'Your portfolio lives on its own page, with balances across chains. <a class="btn btn-soft btn-sm" style="margin-top:10px" href="/portfolio">Open portfolio</a>'); return; }
+
+    /* buy / sell <amount> of <asset> */
+    let m = low.match(/^(?:buy|purchase)\s+(?:me\s+)?(?:\$?\s*([\d.,]+)\s*)?(?:of\s+)?(.+?)(?:\s+worth)?$/);
+    if (!m) m = low.match(/^sell\s+(?:\$?\s*([\d.,]+)\s*)?(?:of\s+)?(.+?)(?:\s+worth)?$/);
+    if (m) {
+      const side = low.startsWith('sell') ? 'sell' : 'buy';
+      const a = findAsset(m[2]);
+      if (a) { const amt = m[1] ? num(m[1]) : null; push('bot', (side === 'sell' ? 'Selling ' : 'Buying ') + (amt ? esc(String(amt)) + ' USD of ' : '') + esc(a.underlying || a.symbol) + ', best issuer by liquidity. Sign in the trade sheet when it opens.' + assetCard(a, amt, side)); return; }
+      push('bot', 'I could not find that asset. Try a ticker like NVDA, or a name like NVIDIA or gold.');
+      return;
+    }
+
+    /* compare X */
+    m = low.match(/^compare\s+(.+)$/);
+    if (m) {
+      const a = findAsset(m[1]);
+      if (a) {
+        const rows = issuersOf(a.underlying || a.symbol);
+        if (rows.length > 1) {
+          push('bot', `There ${rows.length === 1 ? 'is' : 'are'} ${rows.length} issuer${rows.length === 1 ? '' : 's'} of ${esc(a.underlying || a.symbol)} on Opaline, cheapest first: <div class="tbl-wrap" style="margin-top:10px"><table class="tbl"><thead><tr><th>Issuer</th><th class="r">Price</th><th class="r">24h</th></tr></thead><tbody>
+            ${rows.map(r => `<tr><td><span class="asset-cell">${O.img(r.image)}<span><b>${esc(r.issuerName)}</b><small>${esc(r.symbol)}</small></span></span></td><td class="r mono">${O.usd(r.price)}</td><td class="r ${O.pctCls(r.ch24h)}">${O.pct(r.ch24h)}</td></tr>`).join('')}
+            </tbody></table></div><a class="btn btn-soft btn-sm" style="margin-top:12px" href="/compare?underlying=${esc(a.underlying || a.symbol)}">Full comparison</a>`);
+          return;
+        }
+        push('bot', esc(a.issuerName) + ' is the only issuer of ' + esc(a.underlying || a.symbol) + ' right now.' + assetCard(a));
+        return;
+      }
+      push('bot', 'I could not find that underlying. Try a ticker like NVDA or a name like NVIDIA.');
+      return;
+    }
+
+    /* cheapest X on <chain> */
+    m = low.match(/cheapest\s+(.+?)\s+on\s+([a-z0-9 ]+)$/);
+    if (m) {
+      const rows = issuersOf(m[1]).filter(a => a.chains.some(c => (O.chainName(c.chainId) || '').toLowerCase() === m[2].trim()));
+      if (rows.length) { const a = rows[0]; push('bot', 'Cheapest ' + esc(a.underlying) + ' on ' + esc(O.chainName(a.chains[0].chainId)) + ':' + assetCard(a)); return; }
+      const any = findAsset(m[1]);
+      push('bot', any ? 'No issuer of ' + esc(any.underlying || any.symbol) + ' is available on ' + esc(m[2].trim()) + ' right now.' : 'I could not find that asset or chain.');
+      return;
+    }
+
+    /* top movers / gainers / losers */
+    if (/top movers|gainers|losers|biggest movers/.test(low)) {
+      const pool = routable.filter(a => a.price && a.ch24h != null && a.volume > 10000);
+      const up = pool.slice().sort((a, b) => b.ch24h - a.ch24h).slice(0, 5);
+      const down = pool.slice().sort((a, b) => a.ch24h - b.ch24h).slice(0, 5);
+      const rows = arr => arr.map(a => `<tr><td><span class="asset-cell">${O.img(a.image)}<span><b>${esc(a.symbol)}</b><small>${esc(a.issuerName)}</small></span></span></td><td class="r mono">${O.usd(a.price)}</td><td class="r ${O.pctCls(a.ch24h)}">${O.pct(a.ch24h)}</td><td class="r"><button class="btn btn-soft btn-sm" data-agbuy="${esc(a.id)}">Buy</button></td></tr>`).join('');
+      const gains = /losers/.test(low);
+      push('bot', (gains ? 'The five biggest losers today:' : 'The five biggest gainers today:') + `<div class="tbl-wrap" style="margin-top:10px"><table class="tbl"><thead><tr><th>Asset</th><th class="r">Price</th><th class="r">24h</th><th></th></tr></thead><tbody>${rows(gains ? down : up)}</tbody></table></div>
+        <div class="row" style="margin-top:12px"><button class="btn btn-soft btn-sm" data-mv="up">Show gainers</button><button class="btn btn-soft btn-sm" data-mv="down">Show losers</button></div>`);
+      $$('[data-mv]').forEach(b => b.onclick = () => { b.closest('.bub').querySelectorAll('[data-mv]').forEach(x => x.remove()); sendText(gains ? 'top movers' : 'losers'); });
+      return;
+    }
+
+    /* yield */
+    if (/yield|apy|best rates/.test(low)) {
+      try {
+        const y = (await O.api('yields', {ttl: 120000})).yields.filter(p => p.apy && p.tvl > 1e6).sort((a, b) => b.apy - a.apy).slice(0, 5);
+        push('bot', 'Top yields right now, from on-chain pools with real deposits:' + `<div class="tbl-wrap" style="margin-top:10px"><table class="tbl"><thead><tr><th>Pool</th><th>Chain</th><th class="r">APY</th><th class="r">TVL</th></tr></thead><tbody>
+          ${y.map(p => `<tr><td><b>${esc(p.symbol)}</b><small style="display:block">${esc(p.project)}</small></td><td>${esc(p.chain)}</td><td class="r mono">${p.apy.toFixed(2)}%</td><td class="r mono">${O.compact(p.tvl)}</td></tr>`).join('')}
+          </tbody></table></div><a class="btn btn-soft btn-sm" style="margin-top:12px" href="/earn">All yields</a>`);
+      } catch (e) { push('bot', 'Yield data did not load. Try again in a moment.'); }
+      return;
+    }
+
+    /* basket: build/create a basket of A, B, C */
+    m = low.match(/(?:build|create|make)\s+(?:me\s+)?(?:a\s+)?basket\s+(?:of|with|containing)\s+(.+)$/);
+    if (m) {
+      const parts = m[1].split(/\s*(?:,|\band\b|\+)\s*/).map(s => s.trim()).filter(Boolean);
+      const picks = parts.map(findAsset).filter(Boolean);
+      if (picks.length) {
+        const uniq = []; const seen = {};
+        picks.forEach(a => { if (!seen[a.id]) { seen[a.id] = 1; uniq.push(a); } });
+        const w = Math.round(100 / uniq.length);
+        const items = uniq.map(a => ({id: a.id, w: 1}));
+        const raw = JSON.stringify(items);
+        push('bot', 'Here is an equal weight basket. Weights are rounded, so the last asset absorbs the remainder:' +
+          `<div class="row" style="margin-top:12px;gap:18px;flex-wrap:wrap">${O.donut(uniq.map((a, i) => ({label: a.symbol, value: 100 / uniq.length})), 120, 22)}<div class="pie-legend">${uniq.map((a, i) => `<span class="row" style="gap:8px;font-size:13px"><span class="sw" style="background:${O.PALETTE[i]}"></span>${esc(a.symbol)} ${w}%</span>`).join('')}</div></div>
+          <div class="row" style="margin-top:14px;gap:8px"><button class="btn btn-primary btn-sm" data-agsave='${esc(raw).replace(/'/g, '&#39;')}'>Save basket</button><a class="btn btn-soft btn-sm" href="/baskets">Open baskets</a></div>`);
+        $$('[data-agsave]').forEach(b => b.onclick = () => saveBasket(b.dataset.agsave));
+        return;
+      }
+      push('bot', 'I could not find those assets. Try tickers, like: build a basket of NVDA, AAPL and PAXG.');
+      return;
+    }
+
+    /* alert me when X above/below N */
+    m = low.match(/alert\s+(?:me\s+)?(?:when\s+)?(.+?)\s+(above|below|over|under|crosses?)\s+\$?\s*([\d.,]+)(k|m)?\b/);
+    if (m) {
+      const a = findAsset(m[1]);
+      if (a) {
+        let v = num(m[3]);
+        if (m[4]) v *= m[4].toLowerCase() === 'k' ? 1000 : 1000000;
+        const type = (m[2] === 'above' || m[2] === 'over') ? 'above' : 'below';
+        alertFrom(a.id, type, v);
+        push('bot', 'Armed. I will flag it when ' + esc(a.symbol) + ' goes ' + type + ' ' + O.usd(v) + '. Alerts fire in this browser, and you can manage them on the <a href="/alerts">alerts page</a>.');
+        return;
+      }
+      push('bot', 'I could not find that asset. Try: alert me when NVDA above 250.');
+      return;
+    }
+
+    /* price of X / X price */
+    m = low.match(/^(?:price\s+of\s+(.+?)|what(?:'s| is) the price of (.+?)\??|(.+?)\s+price\??)$/);
+    if (m) {
+      const a = findAsset(m[1] || m[2] || m[3]);
+      if (a) {
+        push('bot', esc(a.name) + ' (' + esc(a.symbol) + ') is at <b class="mono">' + O.usd(a.price) + '</b>, ' + O.pct(a.ch24h) + ' over 24h.' +
+          `<div style="margin-top:10px">${O.spark(a.spark, 320, 70)}</div>
+          <div class="row" style="margin-top:12px;gap:8px"><button class="btn btn-grad btn-sm" data-agbuy="${esc(a.id)}" data-agside="buy">Buy ${esc(a.symbol)}</button><a class="btn btn-soft btn-sm" href="/asset/${esc(a.id)}">Details</a></div>`);
+        $$('[data-agbuy]').forEach(b => b.onclick = () => O.buy(b.dataset.agbuy, {side: b.dataset.agside || 'buy'}));
+        return;
+      }
+    }
+
+    /* fallback: BYOK or friendly */
+    await fallback(t);
+  };
+
+  /* ---------- BYOK ---------- */
+  const key = () => O.store.get('agentKey', '');
+  const fallback = async t => {
+    if (key()) {
+      const top60 = byVol.slice(0, 60).map(a => a.symbol + ' (' + a.name + '): ' + O.usd(a.price)).join('; ');
+      try {
+        const r = await fetch('https://api.openai.com/v1/chat/completions', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key()},
+          body: JSON.stringify({model: 'gpt-4o-mini', messages: [
+            {role: 'system', content: 'You are the Opaline agent, a self-custodial marketplace for tokenized real-world assets. Answer briefly and confidently. Top assets with live prices: ' + top60 + '. When suggesting a trade, end your reply with one line exactly like ACTION:{"buy":"SYMBOL","amount":123} where amount is USD. Never give investment advice guarantees.'},
+            {role: 'user', content: t}
+          ]})
+        });
+        const j = await r.json();
+        let txt = (j.choices && j.choices[0] && j.choices[0].message && j.choices[0].message.content) || '';
+        if (!txt) throw new Error('empty');
+        let act = null;
+        txt = txt.replace(/ACTION:(\{.*\})/, (_, g) => { try { act = JSON.parse(g); } catch (e) {} return ''; });
+        let html = txt.split('\n').map(l => l.trim()).filter(Boolean).map(l => '<p style="margin:0 0 8px">' + O.esc(l).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>') + '</p>').join('');
+        if (act && act.buy) {
+          const a = findAsset(act.buy);
+          if (a) html += assetCard(a, act.amount || null, 'buy');
+        }
+        push('bot', html);
+      } catch (e) { push('bot', 'The model call failed. Check your key in the gear menu, or try one of the built-in commands below.'); }
+      return;
+    }
+    push('bot', 'I did not catch that one. I am best at prices, comparisons, movers, yields, baskets, alerts and trades, type <b>help</b> to see the full list. You can also paste your own OpenAI key in the gear menu above and I will answer open questions too.');
+  };
+
+  /* ---------- settings gear ---------- */
+  $('#agGear').onclick = () => {
+    const k = key();
+    const md = O.modal('Agent settings', `<label class="lbl">OpenAI API key (optional)</label>
+      <input class="input mono" data-k placeholder="sk-..." value="${esc(k)}">
+      <p class="muted" style="font-size:13px;margin-top:12px">Stored only in this browser's local storage, under opal:agentKey. Requests go straight from your browser to the model provider, never through Opaline. Without a key, the built-in engine handles everything on the list above.</p>
+      <div class="row" style="margin-top:18px;justify-content:flex-end"><button class="btn btn-soft" data-n>Cancel</button><button class="btn btn-primary" data-y>Save</button></div>`);
+    md.body.querySelector('[data-n]').onclick = md.close;
+    md.body.querySelector('[data-y]').onclick = () => { O.store.set('agentKey', md.body.querySelector('[data-k]').value.trim()); md.close(); O.toast('Key saved locally', 'ok'); };
+  };
+
+  /* ---------- suggestions + input ---------- */
+  const CHIPS = ['price of NVDA', 'compare NVDA', 'top movers', 'best yield', 'build a basket of NVDA, AAPL and PAXG', 'help'];
+  $('#chips').innerHTML = CHIPS.map(c => `<button class="chip" data-c="${esc(c)}" style="cursor:pointer">${esc(c)}</button>`).join('');
+  $$('[data-c]').forEach(b => b.onclick = () => sendText(b.dataset.c));
+
+  const sendText = async t => {
+    t = (t || '').trim(); if (!t) return;
+    push('user', O.esc(t));
+    $('#agInput').value = '';
+    const thinking = O.h('<div class="bub bot faint" data-think>Thinking...</div>');
+    $('#chat').appendChild(thinking); scroll();
+    try { await respond(t); } catch (e) { push('bot', 'Something went wrong on that one. Try again.'); }
+    const th = $('[data-think]'); if (th) th.remove();
+    drawChat();
+  };
+  $('#agSend').onclick = () => sendText($('#agInput').value);
+  $('#agInput').onkeydown = e => { if (e.key === 'Enter') sendText($('#agInput').value); };
+  $('#agClear').onclick = async () => { if (await O.confirm('Clear chat', 'This deletes the conversation from this browser.', 'Clear')) { O.store.set('chat', []); drawChat(); } };
+
+  drawChat();
+  const q = new URLSearchParams(location.search).get('q');
+  if (q && !load().some(m => m.role === 'user' && m.html.includes(O.esc(q)))) sendText(q);
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Yield | Opaline</title>
+<meta name="description" content="Live yields across Opaline asset pools: APY, TVL and risk in one table, plus a compound growth calculator.">
+<meta name="theme-color" content="#fbf8f4">
+<meta property="og:title" content="Yield | Opaline">
+<meta property="og:description" content="Live yields across Opaline asset pools: APY, TVL and risk in one table, plus a compound growth calculator.">
+<meta property="og:image" content="/og.png">
+<link rel="icon" href="/logo-mark.svg" type="image/svg+xml">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="stylesheet" href="/styles.css">
+<script>try{document.documentElement.dataset.theme=JSON.parse(localStorage.getItem('opal:theme'))||(matchMedia('(prefers-color-scheme: dark)').matches?'dusk':'light')}catch(e){}</script>
+<script src="/shell.js" defer></script>
+</head>
+<body>
+<main><section class="wrap">
+  <div class="page-head">
+    <div>
+      <span class="eyebrow rv">Earnings</span>
+      <h1 class="title rv rv-1">Put idle assets <em>to work</em></h1>
+      <p class="lead rv rv-2">Every pool that pays a yield on Opaline collateral, with the numbers that matter: size, persistence and what the APY is actually made of.</p>
+    </div>
+  </div>
+
+  <div class="card rv sp">
+    <div class="grid g4" style="gap:14px">
+      <div><label class="lbl">Search</label><div class="search" id="searchWrap"></div></div>
+      <div><label class="lbl">Chain</label><select class="input" id="chainSel"><option value="all">All chains</option></select></div>
+      <div><label class="lbl">Project</label><select class="input" id="projSel"><option value="all">All projects</option></select></div>
+      <div><label class="lbl">Min TVL</label><select class="input" id="tvlSel">
+        <option value="0">Any size</option><option value="1e5">$100K</option><option value="1e6">$1M</option><option value="1e7">$10M</option>
+      </select></div>
+    </div>
+    <div class="row sp" style="margin-top:14px">
+      <button class="chip" id="stableBtn">Stablecoins only</button>
+      <button class="btn btn-ghost btn-sm" id="resetBtn">Reset filters</button>
+    </div>
+  </div>
+
+  <div class="grid g4 sp" id="stats">
+    <div class="card tint-mint stat"><div class="k">Yield pools</div><div class="v skel" style="height:30px"></div><div class="s">Passing your filters</div></div>
+    <div class="card tint-lav stat"><div class="k">Total TVL</div><div class="v skel" style="height:30px"></div><div class="s">Capital earning today</div></div>
+    <div class="card tint-butter stat"><div class="k">Median APY</div><div class="v skel" style="height:30px"></div><div class="s">The typical pool pays this</div></div>
+    <div class="card tint-peach stat"><div class="k">Best APY over $1M TVL</div><div class="v skel" style="height:30px"></div><div class="s">Depth and yield together</div></div>
+  </div>
+
+  <div class="card rv sp" style="padding:0">
+    <div class="tbl-wrap" style="margin-top:2px">
+      <table class="tbl">
+        <thead>
+          <tr>
+            <th data-k="symbol">Asset</th>
+            <th data-k="project">Project</th>
+            <th data-k="chain">Chain</th>
+            <th data-k="apy" class="r">APY</th>
+            <th data-k="apy30d" class="r">30d avg</th>
+            <th data-k="tvl" class="r">TVL</th>
+            <th>IL risk</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="tbody"><tr><td colspan="8"><div class="skel" style="height:420px;background:none"></div></td></tr></tbody>
+      </table>
+    </div>
+    <div style="text-align:center;padding:16px">
+      <button class="btn btn-soft" id="loadMore" style="display:none">Load more</button>
+    </div>
+  </div>
+
+  <div class="card tint-sky rv sp">
+    <div class="h2" style="font-size:17px">Yield <em style="font-style:italic">calculator</em></h2>
+    <p class="muted" style="font-size:13px;margin-top:4px">Pick a pool and an amount to see growth with daily compounding. Past APY is a guide, not a promise.</p>
+    <div class="grid g2" style="margin-top:14px">
+      <div>
+        <label class="lbl">Amount</label>
+        <input class="input" id="calcAmt" type="number" min="0" value="10000">
+        <label class="lbl" style="margin-top:12px">Pool</label>
+        <select class="input" id="calcPool"></select>
+      </div>
+      <div class="grid g3" style="gap:10px;align-content:start">
+        <div class="stat"><div class="k">1 month</div><div class="v" id="proj1m">-</div></div>
+        <div class="stat"><div class="k">6 months</div><div class="v" id="proj6m">-</div></div>
+        <div class="stat"><div class="k">1 year</div><div class="v" id="proj1y">-</div></div>
+      </div>
+    </div>
+    <div id="calcChart" style="margin-top:14px"></div>
+  </div>
+</section></main>
+<style>
+.tbl td{white-space:nowrap}
+.calc-proj{padding:10px 14px}
+@media (max-width:680px){.grid.g4 .card.stat .v{font-size:20px}}
+</style>
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+  const $ = O.$, $$ = O.$$;
+  const state = { q: '', chain: 'all', project: 'all', tvl: 0, stable: false, sort: { key: 'tvl', dir: -1 }, shown: 60 };
+  let ALL = [], view = [], loaded = false;
+
+  $('#searchWrap').innerHTML = O.icon.search + '<input class="input" id="q" placeholder="Search pools">';
+  $('#q').addEventListener('input', e => { state.q = e.target.value.trim().toLowerCase(); state.shown = 60; apply(); });
+  $('#chainSel').addEventListener('change', e => { state.chain = e.target.value; state.shown = 60; apply(); });
+  $('#projSel').addEventListener('change', e => { state.project = e.target.value; state.shown = 60; apply(); });
+  $('#tvlSel').addEventListener('change', e => { state.tvl = Number(e.target.value); state.shown = 60; apply(); });
+  $('#stableBtn').addEventListener('click', () => { state.stable = !state.stable; $('#stableBtn').classList.toggle('on', state.stable); $('#stableBtn').classList.toggle('mint', state.stable); state.shown = 60; apply(); });
+  $('#resetBtn').addEventListener('click', () => {
+    state.q = ''; state.chain = 'all'; state.project = 'all'; state.tvl = 0; state.stable = false; state.shown = 60;
+    $('#q').value = ''; $('#chainSel').value = 'all'; $('#projSel').value = 'all'; $('#tvlSel').value = '0';
+    $('#stableBtn').classList.remove('on', 'mint'); apply();
+  });
+  $('#loadMore').addEventListener('click', () => { state.shown += 60; render(); });
+
+  try {
+    const d = await O.api('yields');
+    ALL = (d.yields || []).filter(y => y && y.pool);
+  } catch (e) { ALL = []; }
+
+  const chains = [...new Set(ALL.map(y => y.chain).filter(Boolean))].sort();
+  chains.forEach(c => { const o = document.createElement('option'); o.value = c; o.textContent = c; $('#chainSel').appendChild(o); });
+  const projects = [...new Set(ALL.map(y => y.project).filter(Boolean))].sort();
+  projects.forEach(p => { const o = document.createElement('option'); o.value = p; o.textContent = p; $('#projSel').appendChild(o); });
+
+  function apply() {
+    view = ALL.filter(y => {
+      if (state.q) {
+        const hay = ((y.symbol || '') + ' ' + (y.project || '') + ' ' + (y.pool || '')).toLowerCase();
+        if (!hay.includes(state.q)) return false;
+      }
+      if (state.chain !== 'all' && y.chain !== state.chain) return false;
+      if (state.project !== 'all' && y.project !== state.project) return false;
+      if ((y.tvl || 0) < state.tvl) return false;
+      if (state.stable && !y.stable) return false;
+      return true;
+    });
+    state.shown = Math.max(state.shown, 60);
+    render();
+  }
+
+  function rowHtml(y) {
+    const base = y.apyBase != null ? y.apyBase : null;
+    const reward = y.apyReward != null ? y.apyReward : null;
+    const parts = [];
+    if (base != null) parts.push('base ' + Number(base).toFixed(2) + '%');
+    if (reward != null) parts.push('reward ' + Number(reward).toFixed(2) + '%');
+    const il = y.il === 'no'
+      ? '<span class="chip mint">No IL</span>'
+      : '<span class="chip peach">' + O.esc(y.il ? y.il + ' IL' : 'IL risk') + '</span>';
+    return `<tr class="rv">
+      <td><div class="pair-cell"><b>${O.esc(y.symbol || y.pool)}</b>${y.meta ? '<small>' + O.esc(y.meta) + '</small>' : ''}</div></td>
+      <td>${O.esc(y.project || '')}</td>
+      <td><span class="chip lav">${O.esc(y.chain || '')}</span></td>
+      <td class="r"><b>${y.apy != null ? Number(y.apy).toFixed(2) + '%' : '-'}</b>${parts.length ? '<small class="faint" style="display:block;font-size:11px">' + O.esc(parts.join(' + ')) + '</small>' : ''}</td>
+      <td class="r faint">${y.apy30d != null ? Number(y.apy30d).toFixed(2) + '%' : '-'}</td>
+      <td class="r">${O.compact(y.tvl)}</td>
+      <td>${il}</td>
+      <td class="r"><a class="btn btn-soft btn-sm" href="https://defillama.com/yields/pool/${encodeURIComponent(y.pool)}" target="_blank" rel="noopener">Details</a></td>
+    </tr>`;
+  }
+
+  function render() {
+    const list = O.sortBy(view, state);
+    O.sortable(document.querySelector('table.tbl thead'), state, () => { state.shown = view.length; render(); });
+    const slice = list.slice(0, state.shown);
+    $('#tbody').innerHTML = slice.length ? slice.map(rowHtml).join('')
+      : '<tr><td colspan="8"><div class="empty"><span class="serif">Nothing matches</span>Loosen a filter or two and the yield table will fill right back in.</div></td></tr>';
+    $('#loadMore').style.display = list.length > state.shown ? '' : 'none';
+    if (!loaded) { loaded = true; buildCalc(list); }
+    const tvls = view.map(y => y.tvl || 0);
+    const apys = view.map(y => y.apy).filter(v => v != null).sort((a, b) => a - b);
+    const med = apys.length ? apys[Math.floor(apys.length / 2)] : null;
+    const big = view.filter(y => (y.tvl || 0) > 1e6 && y.apy != null).sort((a, b) => b.apy - a.apy);
+    const set = (i, v) => { const el = $$('#stats .v')[i]; el.classList.remove('skel'); el.style.height = ''; el.innerHTML = v; };
+    set(0, O.num(view.length, 0));
+    set(1, O.compact(tvls.reduce((s, v) => s + v, 0)));
+    set(2, med != null ? Number(med).toFixed(2) + '%' : '-');
+    set(3, big.length ? Number(big[0].apy).toFixed(2) + '%' : '-');
+  }
+
+  function buildCalc(list) {
+    const top30 = list.slice(0, 30);
+    const sel = $('#calcPool');
+    sel.innerHTML = top30.length ? top30.map((y, i) =>
+      `<option value="${i}">${O.esc((y.symbol || y.pool) + ' · ' + (y.project || ''))} (${y.apy != null ? Number(y.apy).toFixed(2) + '%' : '-'})</option>`).join('')
+      : '<option value="">No pools available</option>';
+    sel.addEventListener('change', calc);
+    $('#calcAmt').addEventListener('input', calc);
+    calc();
+
+    function current() {
+      const y = top30[Number(sel.value)];
+      if (!y || y.apy == null) return null;
+      const amt = Math.max(0, Number($('#calcAmt').value) || 0);
+      return { amt, apy: y.apy };
+    }
+    function growth(amt, apy) {
+      const daily = apy / 100 / 365, pts = [];
+      for (let m = 0; m <= 12; m++) pts.push([Date.now() + m * 30 * 864e5, amt * Math.pow(1 + daily, m * 30)]);
+      return pts;
+    }
+    function calc() {
+      const c = current();
+      if (!c) {
+        ['proj1m', 'proj6m', 'proj1y'].forEach(id => $('#' + id).textContent = '-');
+        $('#calcChart').innerHTML = '<div class="empty"><span class="serif">No pool selected</span>Pick a pool above to project earnings.</div>';
+        return;
+      }
+      const daily = c.apy / 100 / 365;
+      const at = months => c.amt * Math.pow(1 + daily, months * 30);
+      $('#proj1m').textContent = O.usd(at(1) - c.amt, 2);
+      $('#proj6m').textContent = O.usd(at(6) - c.amt, 2);
+      $('#proj1y').textContent = O.usd(at(12) - c.amt, 2);
+      O.areaChart($('#calcChart'), growth(c.amt, c.apy), { height: 180, fmt: v => O.usd(v) });
+    }
+  }
+
+  apply();
+});
+</script>
+</body>
+</html>

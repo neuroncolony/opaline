@@ -89,7 +89,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   try { as = await O.assets(); } catch (e) { O.$('#movers').innerHTML = '<div class="empty">Market data is warming up. Refresh in a minute.</div>'; return; }
   const cap = as.reduce((s, a) => s + (a.mcap || 0), 0), vol = as.reduce((s, a) => s + (a.volume || 0), 0);
   O.countUp(O.$('#sCount'), as.length, v => Math.round(v)); O.countUp(O.$('#sCap'), cap); O.countUp(O.$('#sVol'), vol);
-  const liquid = as.filter(a => a.volume > 50000 && a.ch24h != null);
+  const liquid = as.filter(a => a.volume > 250000 && a.mcap > 5e6 && a.ch24h != null && a.image && !/missing/.test(a.image));
   const movers = liquid.slice().sort((a, b) => Math.abs(b.ch24h) - Math.abs(a.ch24h)).slice(0, 5);
   O.$('#movers').innerHTML = movers.map(a => `<a class="mover" href="/asset/${a.id}">${O.img(a.image)}<span style="flex:1;min-width:0"><b>${esc(a.symbol)}</b><small class="faint" style="display:block;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(a.name)}</small></span>${O.spark(a.spark, 70, 28)}<span style="text-align:right;width:84px"><b class="mono" style="font-size:13px">${O.usd(a.price)}</b><small class="${O.pctCls(a.ch24h)} mono" style="display:block;font-size:12px">${O.pct(a.ch24h)}</small></span></a>`).join('');
   const gold = as.find(a => a.symbol === 'XAUT') || as.find(a => a.symbol === 'PAXG'); if (gold) O.$('#goldPx').textContent = O.usd(gold.price, 0);
