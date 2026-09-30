@@ -5,14 +5,14 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Markets | Opaline</title>
 <meta name="description" content="Browse 500+ tokenized stocks, ETFs, gold and treasuries. Filter by class, issuer and chain, sort live and trade any asset in one tap.">
-<meta name="theme-color" content="#fbf8f4">
+<meta name="theme-color" content="#070a14">
 <meta property="og:title" content="Markets | Opaline">
 <meta property="og:description" content="Browse 500+ tokenized stocks, ETFs, gold and treasuries. Filter by class, issuer and chain, sort live and trade any asset in one tap.">
 <meta property="og:image" content="/og.png">
 <link rel="icon" href="/logo-mark.svg" type="image/svg+xml">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="stylesheet" href="/styles.css">
-<script>try{document.documentElement.dataset.theme=JSON.parse(localStorage.getItem('opal:theme'))||(matchMedia('(prefers-color-scheme: dark)').matches?'dusk':'light')}catch(e){}</script>
+<script>try{document.documentElement.dataset.theme=JSON.parse(localStorage.getItem('opal:theme2'))||'dusk'}catch(e){}</script>
 <script src="/shell.js" defer></script>
 </head>
 <body>
@@ -37,8 +37,8 @@
       <div class="search" style="flex:1;min-width:220px" id="searchWrap"></div>
       <select class="input" id="issuerSel" style="max-width:210px"><option value="all">All issuers</option></select>
       <select class="input" id="chainSel" style="max-width:170px"><option value="all">All chains</option></select>
-      <label class="row" style="gap:8px;cursor:pointer;font-size:13px;font-weight:700;white-space:nowrap">
-        <input type="checkbox" id="routable" style="width:17px;height:17px;accent-color:#7d67e8"> Routable only
+      <label class="row chk-label" style="gap:8px;cursor:pointer;font-size:13px;font-weight:700;white-space:nowrap">
+        <input type="checkbox" id="routable" style="width:17px;height:17px;accent-color:#8ea0ff"> Routable only
       </label>
     </div>
     <div class="tabs" id="classTabs" style="margin-top:12px"></div>

@@ -72,7 +72,7 @@ O.areaChart = (el, pts, opts={}) => {
   svg.addEventListener('mouseleave', () => { dot.setAttribute('opacity', 0); ln.setAttribute('opacity', 0); tip.style.opacity = 0; });
 };
 /* donut: items [{label, value, color}] */
-O.PALETTE = ['#b3a3ff','#f9a8c4','#ffc49e','#9fe3c6','#a5d6f5','#f5e08a','#d7c4ff','#ffb3a7','#b8e6b0','#c0cdfa'];
+O.PALETTE = ['#8ea0ff','#f4a9d8','#8ef0d8','#f3d59a','#9fe0ff','#c7b3ff','#6fe8c6','#ffb8a8','#b8c6ff','#e9bd6a'];
 O.donut = (items, size=180, stroke=26) => {
   const tot = items.reduce((s, i) => s + (i.value || 0), 0) || 1, r = (size - stroke) / 2, C = 2 * Math.PI * r;
   let off = 0;
@@ -130,12 +130,12 @@ const I = O.icon = {
   star:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1 6.2L12 17.3 6.5 20.2l1-6.2L3 9.6l6.2-.9z"/></svg>',
   pie:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12A9 9 0 1 1 12 3v9z"/><path d="M15 3.5A9 9 0 0 1 20.5 9H15z"/></svg>',
 };
-O.LOGO = `<svg viewBox="0 0 64 64" aria-hidden="true"><defs><linearGradient id="lg1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#c9bdfb"/><stop offset=".45" stop-color="#f9c6d6"/><stop offset=".75" stop-color="#ffd4b8"/><stop offset="1" stop-color="#b7ecd6"/></linearGradient><linearGradient id="lg2" x1="1" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".95"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient></defs><path d="M32 4 56 18v28L32 60 8 46V18z" fill="url(#lg1)"/><path d="M32 4 56 18 32 32 8 18z" fill="url(#lg2)" opacity=".7"/><path d="M32 32v28M32 32 56 18M32 32 8 18" stroke="#fff" stroke-opacity=".75" stroke-width="1.6" fill="none"/><circle cx="23" cy="20" r="3.2" fill="#fff" opacity=".9"/></svg>`;
+O.LOGO = `<svg viewBox="0 0 64 64" aria-hidden="true"><defs><linearGradient id="lg1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8ef0d8"/><stop offset=".45" stop-color="#a9b8ff"/><stop offset=".75" stop-color="#f4a9d8"/><stop offset="1" stop-color="#f3d59a"/></linearGradient><linearGradient id="lg2" x1="1" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".95"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient></defs><path d="M32 4 56 18v28L32 60 8 46V18z" fill="url(#lg1)"/><path d="M32 4 56 18 32 32 8 18z" fill="url(#lg2)" opacity=".7"/><path d="M32 32v28M32 32 56 18M32 32 8 18" stroke="#fff" stroke-opacity=".75" stroke-width="1.6" fill="none"/><circle cx="23" cy="20" r="3.2" fill="#fff" opacity=".9"/></svg>`;
 
 /* ---------- theme ---------- */
-O.theme = O.store.get('theme', matchMedia('(prefers-color-scheme: dark)').matches ? 'dusk' : 'light');
+O.theme = O.store.get('theme2', 'dusk');
 document.documentElement.dataset.theme = O.theme;
-O.toggleTheme = () => { O.theme = O.theme === 'dusk' ? 'light' : 'dusk'; document.documentElement.dataset.theme = O.theme; O.store.set('theme', O.theme); const b = $('#themeBtn'); if (b) b.innerHTML = O.theme === 'dusk' ? I.sun : I.moon; };
+O.toggleTheme = () => { O.theme = O.theme === 'dusk' ? 'light' : 'dusk'; document.documentElement.dataset.theme = O.theme; O.store.set('theme2', O.theme); O.bgSync && O.bgSync(); const b = $('#themeBtn'); if (b) b.innerHTML = O.theme === 'dusk' ? I.sun : I.moon; };
 
 /* ---------- nav ---------- */
 O.NAV = [
@@ -178,7 +178,24 @@ function renderHeader() {
       <button class="icon-btn burger" id="burger" aria-label="Menu">${I.menu}</button>
     </div></div></div></header>`);
   document.body.prepend(hdr);
-  document.body.prepend(O.h('<div class="aura"><i></i><i></i><i></i></div>'));
+  const aura = O.h('<div class="aura" aria-hidden="true"><div class="poster"></div><video muted loop playsinline preload="auto" disablepictureinpicture></video><div class="veil"></div><div class="grain"></div></div>');
+  document.body.prepend(aura);
+  const vid = aura.querySelector('video'), pst = aura.querySelector('.poster');
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  O.bgSync = () => {
+    const m = O.theme === 'dusk' ? 'dark' : 'light';
+    pst.style.backgroundImage = `url(/media/bg-${m}.jpg)`; pst.classList.add('on');
+    if (reduce) return;
+    if (vid.dataset.m === m) return;
+    vid.classList.remove('on');
+    setTimeout(() => {
+      vid.dataset.m = m; vid.innerHTML = `<source src="/media/bg-${m}.webm" type="video/webm"><source src="/media/bg-${m}.mp4" type="video/mp4">`;
+      vid.load(); const go = () => { vid.play().then(() => vid.classList.add('on')).catch(() => {}); };
+      vid.oncanplay = go;
+    }, vid.dataset.m ? 500 : 0);
+  };
+  O.bgSync();
+  document.addEventListener('visibilitychange', () => { if (document.hidden) vid.pause(); else if (vid.dataset.m) vid.play().catch(() => {}); });
   $('#themeBtn').onclick = O.toggleTheme;
   $('#cmdBtn').onclick = O.cmdk;
   $('#burger').onclick = () => $('#nav').classList.toggle('open');
