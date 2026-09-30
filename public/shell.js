@@ -133,9 +133,9 @@ const I = O.icon = {
 O.LOGO = `<svg viewBox="0 0 64 64" aria-hidden="true"><defs><linearGradient id="lg1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8ef0d8"/><stop offset=".45" stop-color="#a9b8ff"/><stop offset=".75" stop-color="#f4a9d8"/><stop offset="1" stop-color="#f3d59a"/></linearGradient><linearGradient id="lg2" x1="1" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".95"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient></defs><path d="M32 4 56 18v28L32 60 8 46V18z" fill="url(#lg1)"/><path d="M32 4 56 18 32 32 8 18z" fill="url(#lg2)" opacity=".7"/><path d="M32 32v28M32 32 56 18M32 32 8 18" stroke="#fff" stroke-opacity=".75" stroke-width="1.6" fill="none"/><circle cx="23" cy="20" r="3.2" fill="#fff" opacity=".9"/></svg>`;
 
 /* ---------- theme ---------- */
-O.theme = O.store.get('theme2', 'dusk');
+O.theme = O.store.get('theme3', 'light');
 document.documentElement.dataset.theme = O.theme;
-O.toggleTheme = () => { O.theme = O.theme === 'dusk' ? 'light' : 'dusk'; document.documentElement.dataset.theme = O.theme; O.store.set('theme2', O.theme); O.bgSync && O.bgSync(); const b = $('#themeBtn'); if (b) b.innerHTML = O.theme === 'dusk' ? I.sun : I.moon; };
+O.toggleTheme = () => { O.theme = O.theme === 'dusk' ? 'light' : 'dusk'; document.documentElement.dataset.theme = O.theme; O.store.set('theme3', O.theme); O.bgSync && O.bgSync(); const b = $('#themeBtn'); if (b) b.innerHTML = O.theme === 'dusk' ? I.sun : I.moon; };
 
 /* ---------- nav ---------- */
 O.NAV = [
@@ -178,24 +178,10 @@ function renderHeader() {
       <button class="icon-btn burger" id="burger" aria-label="Menu">${I.menu}</button>
     </div></div></div></header>`);
   document.body.prepend(hdr);
-  const aura = O.h('<div class="aura" aria-hidden="true"><div class="poster"></div><video muted loop playsinline preload="auto" disablepictureinpicture></video><div class="veil"></div><div class="grain"></div></div>');
+  const aura = O.h('<div class="aura" aria-hidden="true"><i></i><i></i><i></i><div class="veil"></div><div class="grain"></div></div>');
   document.body.prepend(aura);
-  const vid = aura.querySelector('video'), pst = aura.querySelector('.poster');
-  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  O.bgSync = () => {
-    const m = O.theme === 'dusk' ? 'dark' : 'light';
-    pst.style.backgroundImage = `url(/media/bg-${m}.jpg)`; pst.classList.add('on');
-    if (reduce) return;
-    if (vid.dataset.m === m) return;
-    vid.classList.remove('on');
-    setTimeout(() => {
-      vid.dataset.m = m; vid.innerHTML = `<source src="/media/bg-${m}.webm" type="video/webm"><source src="/media/bg-${m}.mp4" type="video/mp4">`;
-      vid.load(); const go = () => { vid.play().then(() => vid.classList.add('on')).catch(() => {}); };
-      vid.oncanplay = go;
-    }, vid.dataset.m ? 500 : 0);
-  };
-  O.bgSync();
-  document.addEventListener('visibilitychange', () => { if (document.hidden) vid.pause(); else if (vid.dataset.m) vid.play().catch(() => {}); });
+  O.bgSync = () => {};
+  if (!document.querySelector('script[data-bg3d]')) { const sc = document.createElement('script'); sc.src = '/bg3d.js?v=opal1'; sc.defer = true; sc.dataset.bg3d = '1'; document.head.appendChild(sc); }
   $('#themeBtn').onclick = O.toggleTheme;
   $('#cmdBtn').onclick = O.cmdk;
   $('#burger').onclick = () => $('#nav').classList.toggle('open');

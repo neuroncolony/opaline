@@ -1,7 +1,7 @@
 /* Opaline design system. Midnight opal: deep ink, iridescent accents, liquid motion. */
 @import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@300;400;500;600;700;800&family=Geist+Mono:wght@400;500&display=swap');
 :root{
-  --bg:#f3f4f9;--bg2:#e9ebf4;--card:#ffffffb8;--card-solid:#fdfdff;--line:#dfe2ee;--line2:#cfd4e6;
+  --bg:#f6f5fb;--bg2:#eceaf5;--card:#ffffffb8;--card-solid:#fdfdff;--line:#dfe2ee;--line2:#cfd4e6;
   --ink:#0f1428;--ink2:#4a5170;--ink3:#8a90aa;
   --lav:#c3cbff;--lav-d:#4f63e8;--mint:#b4efe0;--mint-d:#119b7d;--peach:#f7dfb3;--peach-d:#b98526;
   --sky:#bfe6fb;--sky-d:#1f86c4;--rose:#f8c6e3;--rose-d:#cf3f93;--butter:#f7ebc2;--butter-d:#a88515;
@@ -13,7 +13,7 @@
   --glow:0 0 0 1px #ffffff80 inset;
   --ease:cubic-bezier(.22,1,.36,1);
   --serif:'Instrument Serif',Georgia,serif;--sans:'Geist',system-ui,sans-serif;--mono:'Geist Mono',ui-monospace,monospace;
-  --veil:linear-gradient(180deg,#f3f4f9b3 0%,#f3f4f966 30%,#f3f4f9cc 100%);
+  --veil:linear-gradient(180deg,#f6f5fb00 0%,#f6f5fb00 40%,#f6f5fb99 100%);
 }
 [data-theme=dusk]{
   --bg:#070a14;--bg2:#0f1424;--card:#10162acc;--card-solid:#10162a;--line:#1d2440;--line2:#2a3356;
@@ -38,14 +38,21 @@ img{max-width:100%;display:block}
 .muted{color:var(--ink2)}.faint{color:var(--ink3)}.up{color:var(--up)}.down{color:var(--down)}
 /* living background: looping opal video + veil + grain */
 .aura{position:fixed;inset:0;z-index:-2;pointer-events:none;overflow:hidden;background:var(--bg)}
-.aura video,.aura .poster{position:absolute;inset:-4%;width:108%;height:108%;object-fit:cover;opacity:0;transition:opacity 1.6s var(--ease);transform:scale(1.02)}
-.aura video.on,.aura .poster.on{opacity:1}
-.aura .poster{background-size:cover;background-position:center}
+.aura i{position:absolute;border-radius:50%;filter:blur(80px);opacity:.55;will-change:transform}
+.aura i:nth-child(1){width:52vw;height:52vw;left:-12vw;top:-16vw;background:#bfeee2;animation:blobA 26s var(--ease) infinite alternate}
+.aura i:nth-child(2){width:46vw;height:46vw;right:-10vw;top:6vh;background:#d5dcff;animation:blobB 32s var(--ease) infinite alternate}
+.aura i:nth-child(3){width:40vw;height:40vw;left:28vw;bottom:-18vw;background:#fbd6ea;animation:blobC 29s var(--ease) infinite alternate}
+[data-theme=dusk] .aura i{opacity:.22}
+@keyframes blobA{to{transform:translate(8vw,6vh) scale(1.08)}}
+@keyframes blobB{to{transform:translate(-7vw,8vh) scale(.94)}}
+@keyframes blobC{to{transform:translate(6vw,-7vh) scale(1.1)}}
+.bg3d{position:fixed;inset:0;z-index:-1;pointer-events:none}
+body.bg3d-hit{cursor:pointer}
 .aura .veil{position:absolute;inset:0;background:var(--veil)}
 .aura .grain{position:absolute;inset:-50%;opacity:.06;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");animation:grain 1.2s steps(6) infinite}
 [data-theme=light] .aura .grain{opacity:.045}
 @keyframes grain{0%{transform:translate(0,0)}20%{transform:translate(-3%,2%)}40%{transform:translate(2%,-3%)}60%{transform:translate(-2%,-1%)}80%{transform:translate(3%,3%)}100%{transform:translate(0,0)}}
-@media (prefers-reduced-motion:reduce){.aura video{display:none}.aura .grain{animation:none}}
+@media (prefers-reduced-motion:reduce){.aura i,.aura .grain{animation:none}}
 .wrap{max-width:1280px;margin:0 auto;padding:0 28px}
 main{padding:30px 0 90px;animation:pagein .7s var(--ease) both}
 @keyframes pagein{from{opacity:0;transform:translateY(14px)}}
