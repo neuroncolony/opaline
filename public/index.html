@@ -17,95 +17,118 @@
 </head>
 <body>
 <main>
-<section class="wrap" style="padding-top:40px">
-  <div class="grid" style="grid-template-columns:1.15fr .85fr;gap:40px;align-items:center" id="hero">
-    <div>
-      <span class="eyebrow rv">Tokenized markets, one calm place</span>
-      <h1 class="title rv rv-1" style="font-size:clamp(48px,7vw,96px)">Own the <em>real world</em>,<br>one tap at a time.</h1>
-      <p class="lead rv rv-2">Stocks, ETFs, gold and treasuries from every major issuer, priced live and routed across 20+ chains. Pay with whatever you hold. Keep your own keys.</p>
-      <div class="row wrapf rv rv-3" style="margin-top:28px;gap:12px">
-        <a class="btn btn-grad btn-lg magnet" href="/markets">Explore markets</a>
-        <button class="btn btn-ghost btn-lg" id="heroSwap">Quick buy</button>
-      </div>
-      <div class="row wrapf rv rv-4" style="margin-top:34px;gap:28px">
-        <div class="stat"><div class="k">Assets tracked</div><div class="v" id="sCount">-</div></div>
-        <div class="stat"><div class="k">Market cap</div><div class="v" id="sCap">-</div></div>
-        <div class="stat"><div class="k">24h volume</div><div class="v" id="sVol">-</div></div>
-      </div>
-    </div>
-    <div class="rv rv-2" style="position:relative">
-      <div class="card spot" id="heroCard" style="padding:26px;border-radius:32px;transform:rotate(-1.5deg)">
-        <div class="row between"><span class="eyebrow">Top movers today</span><span class="chip mint"><span class="pulse"></span> Live</span></div>
-        <div id="movers" style="margin-top:14px;display:flex;flex-direction:column;gap:6px"><div class="skel" style="height:220px"></div></div>
-      </div>
-      <div class="card tint-peach" style="position:absolute;right:-14px;bottom:-34px;padding:14px 18px;border-radius:20px;transform:rotate(3deg);animation:bob 6s var(--ease) infinite alternate" id="heroFloat"><div class="faint" style="font-size:11px;font-weight:800;letter-spacing:.08em">GOLD, TOKENIZED</div><div class="serif" style="font-size:28px" id="goldPx">-</div></div>
-    </div>
+<section class="wrap hero" id="hero">
+  <span class="chip mint rv"><span class="pulse"></span> <b id="sCount">-</b> tokenized assets live</span>
+  <h1 class="title rv rv-1">Own the <em>real world</em>,<br>one tap at a time.</h1>
+  <p class="lead rv rv-2">Stocks, ETFs, gold and treasuries from every major issuer, priced live and routed across 20+ chains. Pay with whatever you hold. Keep your own keys.</p>
+  <form class="hsearch rv rv-3" id="hSearch"><input class="input" id="hq" placeholder="Search NVIDIA, gold, S&amp;P 500, T-bills..." autocomplete="off"><button class="btn btn-grad">Search</button></form>
+  <div class="row wrapf rv rv-3" style="justify-content:center;gap:10px;margin-top:14px">
+    <a class="btn btn-soft btn-sm" href="/markets">Explore markets</a>
+    <button class="btn btn-ghost btn-sm" id="heroSwap">Quick buy</button>
+    <a class="btn btn-ghost btn-sm" href="/baskets">Build a basket</a>
   </div>
+  <div class="hstats rv rv-4">
+    <div><span>Market cap</span><b id="sCap">-</b></div>
+    <div><span>24h volume</span><b id="sVol">-</b></div>
+    <div><span>Gold, tokenized</span><b id="goldPx">-</b></div>
+    <div><span>Chains</span><b>20+</b></div>
+  </div>
+  <div class="mini-movers rv rv-4"><span class="mm-l">Movers</span><div id="movers" class="mm-row"></div></div>
 </section>
-<section style="margin-top:80px"><div class="marquee"><div class="marquee-track" id="tape"></div></div></section>
-<section class="wrap" style="margin-top:90px">
+<section style="margin-top:56px"><div class="marquee"><div class="marquee-track" id="tape"></div></div></section>
+<section class="wrap" style="margin-top:64px">
   <div class="page-head"><div><span class="eyebrow rv">Browse by kind</span><h2 class="h2 rv rv-1">Every corner of the <em>real economy</em></h2></div><a class="btn btn-soft rv" href="/markets">All markets</a></div>
-  <div class="grid g3" id="classes"></div>
+  <div class="cls-grid" id="classes"></div>
 </section>
-<section class="wrap" style="margin-top:90px">
-  <div class="grid g2" style="gap:22px">
-    <a class="card tint-lav hover spot rv" href="/compare" style="padding:34px"><span class="chip lav">Only on Opaline</span><h2 class="h2" style="margin-top:14px">Same stock. <em>Cheaper wrapper.</em></h2><p class="muted" style="margin-top:10px;max-width:440px">NVIDIA trades under five issuers on six chains. Issuer spreads shows who is cheapest, deepest and most traded right now.</p><div id="spreadPeek" style="margin-top:20px"></div></a>
-    <a class="card tint-mint hover spot rv rv-1" href="/baskets" style="padding:34px"><span class="chip mint">Baskets</span><h2 class="h2" style="margin-top:14px">A whole portfolio, <em>one flow.</em></h2><p class="muted" style="margin-top:10px;max-width:440px">Pick assets, set weights, see the backtest, buy it all in sequence and share a link so friends can copy it.</p><div id="basketPeek" style="margin-top:20px"></div></a>
+<section class="wrap" style="margin-top:64px">
+  <div class="bento">
+    <a class="card tint-lav hover spot rv b-wide" href="/compare"><span class="chip lav">Only on Opaline</span><h3 class="bh">Same stock. <em>Cheaper wrapper.</em></h3><p class="muted bp">NVIDIA trades under five issuers on six chains. Issuer spreads shows who is cheapest, deepest and most traded right now.</p><div id="spreadPeek" style="margin-top:14px"></div></a>
+    <a class="card tint-mint hover spot rv rv-1" href="/baskets"><span class="chip mint">Baskets</span><h3 class="bh">A portfolio, <em>one flow.</em></h3><div id="basketPeek" style="margin-top:14px"></div></a>
+    <a class="card tint-sky hover spot rv rv-2" href="/auto-invest"><span class="chip">Auto-invest</span><h3 class="bh">Set it, <em>forget it.</em></h3><p class="muted bp">Weekly or monthly buys into any asset or basket, signed from your own wallet.</p></a>
+    <a class="card tint-butter hover spot rv" href="/lend"><span class="chip">Lend</span><h3 class="bh">Borrow against <em>real assets.</em></h3><p class="muted bp">Use tokenized gold and treasuries as collateral across the top money markets.</p></a>
+    <a class="card tint-peach hover spot rv rv-1" href="/alerts"><span class="chip">Alerts</span><h3 class="bh">Never miss <em>the move.</em></h3><p class="muted bp">Price and spread alerts with browser notifications. No account needed.</p></a>
+    <a class="card tint-rose hover spot rv rv-2" href="/portfolio"><span class="chip">Portfolio</span><h3 class="bh">Every chain, <em>one view.</em></h3><p class="muted bp">Paste any address and see holdings, value and P&amp;L across issuers.</p></a>
   </div>
 </section>
-<section class="wrap" style="margin-top:90px">
-  <div style="text-align:center;max-width:720px;margin:0 auto"><span class="eyebrow rv">How it works</span><h2 class="h2 rv rv-1" style="margin-top:10px">Three steps. <em>No accounts.</em></h2></div>
-  <div class="grid g3" style="margin-top:36px">
-    <div class="card rv"><div class="serif grad-text" style="font-size:56px;line-height:1">01</div><h3 style="margin-top:10px">Connect any wallet</h3><p class="muted" style="margin-top:6px">MetaMask, Rabby, Coinbase, Rainbow and every EIP-6963 wallet. No sign up, no KYC with us.</p></div>
-    <div class="card rv rv-1"><div class="serif grad-text" style="font-size:56px;line-height:1">02</div><h3 style="margin-top:10px">Pay with anything</h3><p class="muted" style="margin-top:6px">ETH on Arbitrum, USDC on Base, BNB on BSC. The router bridges and swaps in one signed transaction.</p></div>
-    <div class="card rv rv-2"><div class="serif grad-text" style="font-size:56px;line-height:1">03</div><h3 style="margin-top:10px">Hold it yourself</h3><p class="muted" style="margin-top:6px">Assets land straight in your wallet. Track them, set alerts, lend them out or automate the next buy.</p></div>
-  </div>
-</section>
-<section class="wrap" style="margin-top:90px">
+<section class="wrap" style="margin-top:64px">
   <div class="page-head"><div><span class="eyebrow rv">Put it to work</span><h2 class="h2 rv rv-1">Yield on <em>real assets</em></h2></div><a class="btn btn-soft rv" href="/earn">All yields</a></div>
-  <div class="grid g4" id="yields"></div>
+  <div class="ygrid" id="yields"></div>
 </section>
-<section class="wrap" style="margin-top:100px">
-  <div class="card tint-rose spot rv" style="padding:56px 40px;text-align:center;border-radius:36px">
-    <h2 class="h2" style="font-size:clamp(34px,4.6vw,60px)">Ask the <em>agent</em> anything.</h2>
-    <p class="lead" style="margin:12px auto 0">"Buy $200 of Tesla", "cheapest gold on Base", "build me a dividend basket". Plain words in, a ready-to-sign trade out.</p>
-    <form id="askForm" class="row" style="max-width:620px;margin:28px auto 0;gap:8px"><input class="input" id="askIn" placeholder="Try: compare NVIDIA across issuers" style="border-radius:999px;padding:15px 22px"><button class="btn btn-primary btn-lg">Ask</button></form>
+<section class="wrap" style="margin-top:64px">
+  <div class="steps">
+    <div class="rv"><b class="serif grad-text">01</b><div><h3>Connect any wallet</h3><p class="muted">MetaMask, Rabby, Coinbase, Rainbow. No sign up.</p></div></div>
+    <div class="rv rv-1"><b class="serif grad-text">02</b><div><h3>Pay with anything</h3><p class="muted">The router bridges and swaps in one signed transaction.</p></div></div>
+    <div class="rv rv-2"><b class="serif grad-text">03</b><div><h3>Hold it yourself</h3><p class="muted">Assets land straight in your wallet, ready to track or lend.</p></div></div>
+  </div>
+</section>
+<section class="wrap" style="margin-top:64px">
+  <div class="card tint-rose spot rv" style="padding:44px 32px;text-align:center;border-radius:32px">
+    <h2 class="h2" style="font-size:clamp(30px,4vw,52px)">Ask the <em>agent</em> anything.</h2>
+    <p class="lead" style="margin:10px auto 0">"Buy $200 of Tesla", "cheapest gold on Base", "build me a dividend basket". Plain words in, a ready-to-sign trade out.</p>
+    <form id="askForm" class="row" style="max-width:620px;margin:24px auto 0;gap:8px"><input class="input" id="askIn" placeholder="Try: compare NVIDIA across issuers" style="border-radius:999px;padding:14px 22px"><button class="btn btn-primary btn-lg">Ask</button></form>
   </div>
 </section>
 </main>
 <style>
-@keyframes bob{to{transform:rotate(1deg) translateY(-12px)}}
-@media(max-width:900px){#hero{grid-template-columns:1fr!important}#heroFloat{display:none}}
-.mover{display:flex;align-items:center;gap:12px;padding:9px 10px;border-radius:14px;transition:background .2s}
-.mover:hover{background:var(--bg2)}
-.cls-card .n{font-family:var(--serif);font-size:44px;line-height:1}
+.hero{text-align:center;padding-top:72px;max-width:900px}
+.hero .title{font-size:clamp(44px,7.4vw,98px);margin-top:18px}
+.hero .lead{margin:16px auto 0;max-width:620px}
+.hsearch{display:flex;gap:8px;max-width:560px;margin:30px auto 0;padding:6px;border-radius:999px;background:var(--card);border:1px solid var(--line);box-shadow:0 12px 40px -18px rgba(80,70,140,.35);backdrop-filter:blur(14px)}
+.hsearch .input{border:0;background:transparent;border-radius:999px;padding:12px 18px;box-shadow:none}
+.hsearch .btn{border-radius:999px}
+.hstats{display:grid;grid-template-columns:repeat(4,1fr);max-width:720px;margin:36px auto 0;border:1px solid var(--line);border-radius:20px;background:var(--card);backdrop-filter:blur(14px);overflow:hidden}
+.hstats div{padding:14px 10px;border-left:1px solid var(--line)}.hstats div:first-child{border-left:0}
+.hstats span{display:block;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--faint)}
+.hstats b{font-family:var(--serif);font-weight:400;font-size:26px;line-height:1.2}
+.mini-movers{display:flex;align-items:center;justify-content:center;gap:10px;margin:18px auto 0;max-width:720px}
+.mm-l{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--faint)}
+.mm-row{display:flex;gap:6px;overflow:hidden;flex-wrap:wrap;justify-content:center}
+.mm{display:inline-flex;align-items:center;gap:6px;padding:4px 10px 4px 4px;border-radius:999px;background:var(--card);border:1px solid var(--line);font-size:12px;transition:transform .25s var(--ease),background .2s}
+.mm:hover{transform:translateY(-2px);background:var(--bg2)}
+.mm img{width:18px!important;height:18px!important;border-radius:50%}
+.cls-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:12px}
+.cls-card{padding:18px!important}
+.cls-card h3{font-size:15px}.cls-card .n{font-family:var(--serif);font-size:30px;line-height:1;margin-top:14px}
+.cls-card .cnt{font-size:12px;color:var(--faint);margin-top:2px}
+.cls-card .av{display:flex;margin-top:12px}.cls-card .av img{width:22px;height:22px;border-radius:50%;margin-right:-6px;border:2px solid var(--card-solid)}
+.bento{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.bento .card{padding:24px}.b-wide{grid-row:span 2}
+.bh{font-family:var(--serif);font-weight:400;font-size:28px;line-height:1.1;margin-top:12px}
+.bp{margin-top:8px;font-size:14px}
+.ygrid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.ygrid .card{padding:18px}
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.steps>div{display:flex;gap:14px;align-items:flex-start;padding:18px;border-radius:20px;border:1px solid var(--line);background:var(--card);backdrop-filter:blur(14px)}
+.steps b{font-size:40px;line-height:1;font-weight:400}.steps h3{font-size:16px}.steps p{font-size:13px;margin-top:4px}
+@media(max-width:1000px){.cls-grid{grid-template-columns:repeat(3,1fr)}.bento{grid-template-columns:1fr 1fr}.b-wide{grid-row:auto;grid-column:span 2}.ygrid{grid-template-columns:1fr 1fr}}
+@media(max-width:640px){.hero{padding-top:40px}.hstats{grid-template-columns:1fr 1fr}.hstats div:nth-child(3){border-left:0}.hstats div:nth-child(n+3){border-top:1px solid var(--line)}.cls-grid{grid-template-columns:1fr 1fr}.bento,.steps{grid-template-columns:1fr}.b-wide{grid-column:auto}.mini-movers{flex-direction:column;gap:8px}.mm-row{max-width:100%}.mm:nth-child(n+5){display:none}}
 </style>
 <script>
 document.addEventListener('DOMContentLoaded', async () => {
   const {esc} = O;
   O.$('#heroSwap').onclick = () => O.openSwap({title: 'Quick buy'});
+  O.$('#hSearch').onsubmit = e => { e.preventDefault(); location.href = '/markets?q=' + encodeURIComponent(O.$('#hq').value.trim()); };
   O.$('#askForm').onsubmit = e => { e.preventDefault(); location.href = '/agent?q=' + encodeURIComponent(O.$('#askIn').value); };
   let as = [];
-  try { as = await O.assets(); } catch (e) { O.$('#movers').innerHTML = '<div class="empty">Market data is warming up. Refresh in a minute.</div>'; return; }
+  try { as = await O.assets(); } catch (e) { O.$('#movers').innerHTML = '<span class="faint" style="font-size:12px">Market data is warming up.</span>'; return; }
   const cap = as.reduce((s, a) => s + (a.mcap || 0), 0), vol = as.reduce((s, a) => s + (a.volume || 0), 0);
   O.countUp(O.$('#sCount'), as.length, v => Math.round(v)); O.countUp(O.$('#sCap'), cap); O.countUp(O.$('#sVol'), vol);
   const liquid = as.filter(a => a.volume > 250000 && a.mcap > 5e6 && a.ch24h != null && a.image && !/missing/.test(a.image));
   const movers = liquid.slice().sort((a, b) => Math.abs(b.ch24h) - Math.abs(a.ch24h)).slice(0, 5);
-  O.$('#movers').innerHTML = movers.map(a => `<a class="mover" href="/asset/${a.id}">${O.img(a.image)}<span style="flex:1;min-width:0"><b>${esc(a.symbol)}</b><small class="faint" style="display:block;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(a.name)}</small></span>${O.spark(a.spark, 70, 28)}<span style="text-align:right;width:84px"><b class="mono" style="font-size:13px">${O.usd(a.price)}</b><small class="${O.pctCls(a.ch24h)} mono" style="display:block;font-size:12px">${O.pct(a.ch24h)}</small></span></a>`).join('');
+  O.$('#movers').innerHTML = movers.map(a => `<a class="mm" href="/asset/${a.id}"><img src="${esc(a.image)}" alt=""><b>${esc(a.symbol)}</b><span class="${O.pctCls(a.ch24h)} mono">${O.pct(a.ch24h)}</span></a>`).join('');
   const gold = as.find(a => a.symbol === 'XAUT') || as.find(a => a.symbol === 'PAXG'); if (gold) O.$('#goldPx').textContent = O.usd(gold.price, 0);
   const tape = as.slice(0, 30).map(a => `<a class="tick" href="/asset/${a.id}">${O.img(a.image)}${esc(a.symbol)} <span class="mono">${O.usd(a.price)}</span><span class="${O.pctCls(a.ch24h)} mono">${O.pct(a.ch24h)}</span></a>`).join('');
   O.$('#tape').innerHTML = tape + tape;
   const tints = {stock:'lav', etf:'sky', commodity:'butter', treasury:'mint', credit:'peach', preipo:'rose'};
-  const blurbs = {stock:'Apple, NVIDIA, Tesla and hundreds more, 24/7.', etf:'S&P 500, Nasdaq, sectors and bonds in one token.', commodity:'Gold and silver backed one to one in vaults.', treasury:'T-bills and money market funds paying real yield.', credit:'Private lending pools with on-chain reporting.', preipo:'Early exposure to companies before they list.'};
-  O.$('#classes').innerHTML = Object.keys(tints).map((k, i) => { const g = as.filter(a => a.class === k); if (!g.length) return ''; const c = g.reduce((s, a) => s + a.mcap, 0);
-    return `<a class="card hover spot cls-card tint-${tints[k]} rv rv-${i % 3}" href="/markets?class=${k}"><div class="row between"><h3>${O.CLASS[k].label}</h3><span class="chip">${g.length} assets</span></div><p class="muted" style="margin:8px 0 18px;font-size:14px">${blurbs[k]}</p><div class="row between" style="align-items:flex-end"><div><div class="faint" style="font-size:11px;font-weight:800;letter-spacing:.08em">MARKET CAP</div><div class="n">${O.compact(c)}</div></div><div class="row" style="gap:-6px">${g.slice(0, 4).map(a => `<img src="${esc(a.image)}" alt="" style="width:30px;height:30px;border-radius:50%;margin-left:-8px;border:2px solid var(--card-solid)">`).join('')}</div></div></a>`; }).join('');
-  const nv = as.filter(a => a.underlying === 'NVDA' && a.class === 'stock').sort((a, b) => a.price - b.price).slice(0, 3);
+  O.$('#classes').innerHTML = Object.keys(tints).map((k, i) => { const g = as.filter(a => a.class === k); if (!g.length) return ''; const c = g.reduce((s, a) => s + (a.mcap || 0), 0);
+    return `<a class="card hover spot cls-card tint-${tints[k]} rv rv-${i % 3}" href="/markets?class=${k}"><h3>${O.CLASS[k].label}</h3><div class="cnt">${g.length} assets</div><div class="n">${O.compact(c)}</div><div class="av">${g.filter(a => a.image).slice(0, 4).map(a => `<img src="${esc(a.image)}" alt="">`).join('')}</div></a>`; }).join('');
+  const nv = as.filter(a => a.underlying === 'NVDA' && a.class === 'stock').sort((a, b) => a.price - b.price).slice(0, 4);
   O.$('#spreadPeek').innerHTML = nv.map(a => `<div class="kv"><span>${esc(a.issuerName)} <span class="faint">${esc(a.symbol)}</span></span><b class="mono">${O.usd(a.price)}</b></div>`).join('');
   const pick = ['NVDA','AAPL','MSFT','GOOGL'].map(u => as.find(a => a.underlying === u)).filter(Boolean);
-  O.$('#basketPeek').innerHTML = `<div class="row" style="gap:18px">${O.donut(pick.map(() => ({value: 25})), 92, 16)}<div class="pie-legend">${pick.map((a, i) => `<span class="row" style="gap:8px;font-size:13px"><span class="sw" style="background:${O.PALETTE[i]}"></span>${esc(a.underlying)} 25%</span>`).join('')}</div></div>`;
+  O.$('#basketPeek').innerHTML = `<div class="row" style="gap:16px">${O.donut(pick.map(() => ({value: 25})), 76, 14)}<div class="pie-legend">${pick.map((a, i) => `<span class="row" style="gap:8px;font-size:13px"><span class="sw" style="background:${O.PALETTE[i]}"></span>${esc(a.underlying)} 25%</span>`).join('')}</div></div>`;
   try { const y = (await O.api('yields', {ttl: 120000})).yields.filter(p => p.apy > 0.5 && p.tvl > 1e6).sort((a, b) => b.tvl - a.tvl).slice(0, 4);
     const tt = ['mint','sky','butter','lav'];
-    O.$('#yields').innerHTML = y.map((p, i) => `<a class="card hover tint-${tt[i]} rv rv-${i}" href="/earn"><div class="row between"><b>${esc(p.symbol)}</b><span class="chip">${esc(p.chain)}</span></div><div class="faint" style="font-size:13px;margin-top:2px">${esc(p.project)}</div><div class="serif" style="font-size:46px;margin-top:14px;line-height:1">${p.apy.toFixed(2)}%</div><div class="faint" style="font-size:12px">APY, ${O.compact(p.tvl)} deposited</div></a>`).join('');
+    O.$('#yields').innerHTML = y.map((p, i) => `<a class="card hover tint-${tt[i]} rv rv-${i}" href="/earn"><div class="row between"><b>${esc(p.symbol)}</b><span class="chip">${esc(p.chain)}</span></div><div class="faint" style="font-size:12px;margin-top:2px">${esc(p.project)}</div><div class="serif" style="font-size:36px;margin-top:10px;line-height:1">${p.apy.toFixed(2)}%</div><div class="faint" style="font-size:12px">APY, ${O.compact(p.tvl)} deposited</div></a>`).join('');
   } catch (e) {}
 });
 </script>
