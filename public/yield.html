@@ -14,101 +14,130 @@
 </head>
 <body>
 <main><section class="wrap">
-<div class="page-head">
-  <div>
-    <h1 class="title rv rv-1">Idle is <em>over.</em></h1>
-    <p class="lead rv rv-2">Every tokenized stock and stablecoin in your wallet matched to its best yield in real time. One click to earn, public contracts only.</p>
+<div class="page-head"><div><h1 class="title rv rv-1">Idle is <em>over.</em></h1><p class="lead rv rv-2">Connect and see every tokenized stock and stablecoin you hold, each next to the best place it can earn today. Or set a sell-high band and get paid to wait for your price.</p></div></div>
+<div class="grid g3 rv" id="yStats" style="margin-bottom:22px"></div>
+<div class="card spot rv" style="padding:26px">
+  <div class="row between wrapf" style="gap:12px"><div><span class="chip mint">Idle scanner</span><h2 class="h2" style="font-size:30px;margin-top:10px">What is <em>sitting still?</em></h2></div>
+  <div class="row wrapf" style="gap:8px"><input class="input" id="yAddr" placeholder="Paste any address, or connect" style="min-width:260px;border-radius:999px"><button class="btn btn-soft" id="yScan">Scan</button><button class="btn btn-primary" id="yConn">Connect wallet</button></div></div>
+  <div id="yIdle" style="margin-top:20px"><div class="empty"><span class="serif">Nothing scanned yet</span>Connect a wallet or paste an address. Read only, no signature needed to look.</div></div>
+</div>
+<div class="grid g2" style="margin-top:22px;align-items:start">
+  <div class="card tint-lav spot rv" style="padding:26px">
+    <span class="chip lav">Sell-high band</span>
+    <h2 class="h2" style="font-size:30px;margin-top:10px">Get paid <em>to wait.</em></h2>
+    <p class="muted" style="margin-top:6px">Pick a stock and a band just above today's price. Below it the shares stay yours. Inside it they earn the pool fee on every trade. Through the top they are sold at the average you see here, before you sign.</p>
+    <div class="field" style="margin-top:16px"><label class="lbl">Asset</label><select class="input" id="bAsset"></select></div>
+    <div class="field" style="margin-top:12px"><label class="lbl">Band above price</label><div class="tabs" id="bPct"><button data-p="2" class="on">+2%</button><button data-p="5">+5%</button><button data-p="10">+10%</button></div></div>
+    <div class="field" style="margin-top:12px"><label class="lbl">Position size (USD)</label><input class="input" id="bUsd" type="number" value="1000" min="1"></div>
+    <div id="bOut" style="margin-top:16px"></div>
+    <div class="row wrapf" style="gap:8px;margin-top:16px"><button class="btn btn-primary" id="bSet">Set band</button><a class="btn btn-ghost" href="/orders">My orders</a></div>
+  </div>
+  <div class="card tint-mint spot rv rv-1" style="padding:26px">
+    <span class="chip mint">Cash earns too</span>
+    <h2 class="h2" style="font-size:30px;margin-top:10px">Dollars that <em>compound.</em></h2>
+    <p class="muted" style="margin-top:6px">Stablecoins into tokenized treasuries and savings vaults, ranked by size and rate. No lock, no exit fee, withdraw any share any time.</p>
+    <div id="cash" style="margin-top:16px"><div class="skel" style="height:220px"></div></div>
+    <div class="faint" style="font-size:12px;margin-top:10px">Rates read live from DefiLlama. Pools under $5M deposited are hidden.</div>
   </div>
 </div>
-
-<div class="card rv rv-3" style="margin-bottom:28px;background:var(--card);border:1px solid var(--line);padding:24px">
-  <div class="row between wrap" style="gap:16px;margin-bottom:16px">
-    <div>
-      <h3 style="font-size:18px;font-weight:700">Wallet Scanner</h3>
-      <p class="faint" style="font-size:13px;margin-top:2px">Connect your wallet to scan holdings for earning opportunities instantly.</p>
-    </div>
-    <div>
-      <button class="btn btn-primary" id="yScan">Connect & Scan Idle Assets</button>
-    </div>
-  </div>
-  <div id="yScanResult">
-    <div class="empty" style="padding:32px 0"><span class="serif">No wallet connected</span>Click above to inspect your addresses across supported chains.</div>
-  </div>
-</div>
-
-<div class="h2 rv rv-4" style="margin-bottom:16px">Top Yield Opportunities</div>
-<div class="grid g3" id="yGrid">
-  <div class="skel" style="height:220px"></div>
-  <div class="skel" style="height:220px"></div>
-  <div class="skel" style="height:220px"></div>
+<div class="card spot rv" style="padding:26px;margin-top:22px">
+  <div class="row between wrapf"><div><span class="chip">Your bands</span><h2 class="h2" style="font-size:26px;margin-top:10px">Active <em>bands</em></h2></div><span class="faint" style="font-size:13px">Stored in this browser. You get a notification when price enters your band.</span></div>
+  <div id="bands" style="margin-top:14px"></div>
 </div>
 </section></main>
-
+<style>
+.idle-row{display:grid;grid-template-columns:1.4fr 1fr 1.4fr auto;gap:14px;align-items:center;padding:14px 4px;border-top:1px solid var(--line)}
+.idle-row:first-child{border-top:0}.idle-row img{width:30px;height:30px;border-radius:50%}
+.idle-row .apy{font-family:var(--serif);font-size:26px;line-height:1}
+.band-viz{position:relative;height:56px;border-radius:14px;background:var(--bg2);margin-top:6px;overflow:hidden}
+.band-viz .zone{position:absolute;top:0;bottom:0;background:linear-gradient(90deg,#8ea0ff55,#f4a9d855);border-left:2px solid #8ea0ff;border-right:2px solid #f4a9d8}
+.band-viz .now{position:absolute;top:0;bottom:0;width:2px;background:var(--ink)}
+.band-viz span{position:absolute;bottom:4px;font-size:11px;font-weight:700;color:var(--ink2);transform:translateX(-50%);white-space:nowrap}
+@media(max-width:700px){.idle-row{grid-template-columns:1fr 1fr}.idle-row>:nth-child(3){grid-column:1/-1}#yAddr{min-width:0!important;flex:1}}
+</style>
 <script>
 document.addEventListener('DOMContentLoaded', async () => {
   const {esc, $, $$} = O;
-  let yields = [];
-  try {
-    const res = await fetch('/api/yields');
-    const data = await res.json();
-    yields = data.yields || [];
-  } catch (e) {}
+  const STABLE = ['USDC','USDT','USDG','DAI','PYUSD','USDS','USDE','FDUSD','USDC.E','RLUSD','USD1'];
+  let assets = [], yields = [];
+  try { [assets, yields] = await Promise.all([O.assets(), O.api('yields', {ttl: 120000}).then(r => r.yields || [])]); } catch (e) { O.toast('Market data is warming up, refresh in a minute', 'err'); }
+  const byAddr = {}; assets.forEach(a => (a.chains || []).forEach(c => { byAddr[c.chainId + ':' + String(c.address).toLowerCase()] = a; }));
+  const good = yields.filter(y => y.apy > 0.3 && y.tvl > 5e6 && y.apy < 40);
+  const cashPools = good.filter(y => y.stable && y.exposure === 'single').sort((a, b) => b.tvl - a.tvl).slice(0, 6);
+  const bestCash = cashPools.slice().sort((a, b) => b.apy - a.apy)[0];
+  const assetYield = a => { const keys = [a.symbol, a.underlying].filter(Boolean).map(s => String(s).toUpperCase());
+    return good.filter(y => keys.some(k => String(y.symbol).toUpperCase().split('-').includes(k))).sort((x, z) => z.apy - x.apy)[0]; };
+  const stocks = assets.filter(a => a.class === 'stock' && a.price > 0).sort((a, b) => (b.volume || 0) - (a.volume || 0)).slice(0, 60);
+  const stockApr = a => a.mcap ? Math.min(60, (a.volume || 0) / Math.max(a.mcap, 1) * 365 * 0.0005 * 100 * 6) : 0;
 
-  const topGrid = $('#yGrid');
-  const stables = yields.filter(y => y.stable && y.apy > 0 && y.tvl > 1000000).sort((a, b) => b.apy - a.apy).slice(0, 6);
-  
-  if (stables.length) {
-    topGrid.innerHTML = stables.map((y, i) => `
-      <div class="card hover spot rv rv-${i % 3}" style="display:flex;flex-direction:column;justify-content:space-between">
-        <div>
-          <div class="row between" style="margin-bottom:10px">
-            <span class="chip mint">${esc(y.project.toUpperCase())}</span>
-            <span class="mono faint" style="font-size:12px">${esc(y.chain)}</span>
-          </div>
-          <h3 style="font-size:20px;font-weight:700;margin-bottom:6px">${esc(y.symbol)}</h3>
-          <div class="row between" style="margin:16px 0">
-            <div>
-              <div class="faint" style="font-size:11px;text-transform:uppercase;letter-spacing:.08em">APY</div>
-              <div style="font-size:28px;font-weight:800;color:var(--mint);font-family:var(--serif)">${Number(y.apy).toFixed(2)}%</div>
-            </div>
-            <div style="text-align:right">
-              <div class="faint" style="font-size:11px;text-transform:uppercase;letter-spacing:.08em">TVL</div>
-              <div style="font-size:16px;font-weight:700">${O.compact(y.tvl)}</div>
-            </div>
-          </div>
-        </div>
-        <button class="btn btn-soft w" onclick="O.openSwap({toToken:'${y.underlying && y.underlying[0] ? y.underlying[0] : ''}', toSymbol:'${y.symbol}', toChain:'${y.chain}'})">Deposit ${esc(y.symbol)}</button>
-      </div>
-    `).join('');
-  } else {
-    topGrid.innerHTML = '<div class="card empty" style="grid-column:1/-1"><span class="serif">Yield feed warming up</span>Check back in a moment.</div>';
+  $('#yStats').innerHTML = `
+    <div class="stat"><div class="k">Best cash rate</div><div class="v">${bestCash ? bestCash.apy.toFixed(2) + '%' : '-'}</div><div class="s">${bestCash ? esc(bestCash.symbol) + ' on ' + esc(bestCash.chain) : 'loading'}</div></div>
+    <div class="stat"><div class="k">Yield sources</div><div class="v">${good.length}</div><div class="s">live pools on tokenized assets</div></div>
+    <div class="stat"><div class="k">Band fee</div><div class="v">0.05%</div><div class="s">earned on every trade inside your band</div></div>`;
+  $('#cash').innerHTML = cashPools.map(p => `<div class="kv" style="padding:10px 0"><span><b>${esc(p.symbol)}</b> <span class="faint">${esc(p.project)} · ${esc(p.chain)}</span><small class="faint" style="display:block">${O.compact(p.tvl)} deposited</small></span><span class="row" style="gap:10px"><b class="serif" style="font-size:24px">${p.apy.toFixed(2)}%</b><a class="btn btn-soft btn-sm" href="/earn?q=${encodeURIComponent(p.symbol)}">Earn</a></span></div>`).join('') || '<div class="empty">No savings pools above $5M right now.</div>';
+
+  const W = O.wallet || {};
+  let addr = W.account || '';
+  if (addr) $('#yAddr').value = addr;
+  $('#yConn').onclick = async () => { try { await W.connect(); } catch (e) {} if (W.account) { addr = W.account; $('#yAddr').value = addr; scan(); } };
+  $('#yScan').onclick = () => { const v = $('#yAddr').value.trim(); if (!/^0x[a-fA-F0-9]{40}$/.test(v)) return O.toast('Enter a valid 0x address', 'err'); addr = v; scan(); };
+  async function scan() {
+    const el = $('#yIdle'); el.innerHTML = '<div class="skel" style="height:160px"></div>';
+    let bal; try { bal = await W.balances(addr); } catch (e) { el.innerHTML = '<div class="empty"><span class="serif">Could not read balances</span>Try again in a moment.</div>'; return; }
+    const rows = [];
+    Object.keys(bal || {}).forEach(ch => (bal[ch] || []).forEach(t => {
+      const amt = t.amount != null && t.decimals != null ? O.fromUnits(t.amount, t.decimals) : 0; if (!(amt > 0)) return;
+      const hit = byAddr[ch + ':' + String(t.address).toLowerCase()], sym = String(t.symbol || '').toUpperCase();
+      if (hit) { const usd = amt * (hit.price || 0); if (usd < 1) return; rows.push({kind: hit.class === 'stock' ? 'stock' : 'asset', sym: hit.symbol, logo: hit.image, chain: O.chainName(ch), usd, amt, asset: hit, y: assetYield(hit)}); }
+      else if (STABLE.includes(sym)) { const usd = amt * (+t.priceUSD || 1); if (usd < 1) return; rows.push({kind: 'cash', sym, logo: t.logoURI, chain: O.chainName(ch), usd, amt, y: bestCash}); }
+    }));
+    if (!rows.length) { el.innerHTML = '<div class="empty"><span class="serif">Nothing idle found</span>No tokenized assets or stablecoins on this address yet. <a href="/markets">Browse markets</a></div>'; return; }
+    rows.sort((a, b) => b.usd - a.usd);
+    const apyOf = r => r.y ? r.y.apy : r.kind === 'stock' ? stockApr(r.asset) : 0;
+    const idleUsd = rows.reduce((s, r) => s + r.usd, 0), yr = rows.reduce((s, r) => s + r.usd * apyOf(r) / 100, 0);
+    el.innerHTML = `<div class="row wrapf" style="gap:22px;margin-bottom:8px"><div><div class="faint" style="font-size:12px;font-weight:700">IDLE VALUE</div><b class="serif" style="font-size:34px">${O.usd(idleUsd, 0)}</b></div><div><div class="faint" style="font-size:12px;font-weight:700">COULD EARN / YEAR</div><b class="serif up" style="font-size:34px">${O.usd(yr, 0)}</b></div></div>` +
+      rows.slice(0, 25).map((r, i) => { const apy = apyOf(r);
+        const where = r.y ? `${esc(r.y.project)} · ${esc(r.y.chain)}` : r.kind === 'stock' ? 'Sell-high band, 0.05% pool fee' : 'No pool yet';
+        const act = r.kind === 'stock' ? `<button class="btn btn-primary btn-sm" data-band="${esc(r.asset.id)}">Set band</button>` : r.kind === 'cash' && bestCash ? `<a class="btn btn-primary btn-sm" href="/earn?q=${encodeURIComponent(bestCash.symbol)}">Earn ${bestCash.apy.toFixed(1)}%</a>` : r.y ? `<a class="btn btn-primary btn-sm" href="/earn?q=${encodeURIComponent(r.sym)}">Earn</a>` : `<a class="btn btn-ghost btn-sm" href="/asset/${esc(r.asset ? r.asset.id : '')}">View</a>`;
+        return `<div class="idle-row"><span class="row" style="gap:10px">${O.img(r.logo)}<span><b>${esc(r.sym)}</b><small class="faint" style="display:block">${esc(r.chain)}</small></span></span><span><b>${O.usd(r.usd, 0)}</b><small class="faint" style="display:block">${O.num(r.amt, 4)}</small></span><span><span class="apy ${apy ? 'up' : 'faint'}">${apy ? apy.toFixed(2) + '%' : '-'}</span><small class="faint" style="display:block">${where}</small></span>${act}</div>`; }).join('');
+    $$('[data-band]', el).forEach(b => b.onclick = () => { $('#bAsset').value = b.dataset.band; draw(); $('#bAsset').scrollIntoView({behavior: 'smooth', block: 'center'}); });
   }
+  if (addr) scan();
 
-  $('#yScan').onclick = async () => {
-    if (!W.account) { await W.connect(); }
-    if (!W.account) return;
-    const resDiv = $('#yScanResult');
-    resDiv.innerHTML = '<div class="skel" style="height:100px"></div>';
-    try {
-      const bal = await W.balances(W.account);
-      let found = 0;
-      let html = '<div class="grid g2" style="gap:16px">';
-      Object.keys(bal || {}).forEach(ch => {
-        (bal[ch] || []).forEach(t => {
-          const amt = t.amount && t.decimals ? Number(t.amount) / (10 ** t.decimals) : 0;
-          if (amt > 0.01) {
-            found++;
-            html += `<div class="card" style="padding:16px;background:var(--bg2)"><div class="row between"><b style="font-size:16px">${esc(t.symbol || 'Token')}</b><span class="chip sky">Chain ${ch}</span></div><div class="faint" style="font-size:13px;margin:8px 0">Balance: ${Number(amt).toFixed(4)}</div><button class="btn btn-soft btn-sm" onclick="O.openSwap()">Put to work</button></div>`;
-          }
-        });
-      });
-      html += '</div>';
-      resDiv.innerHTML = found > 0 ? html : '<div class="empty"><span class="serif">No idle balances found</span>Your connected wallet has no active token balances on supported chains.</div>';
-    } catch (e) {
-      resDiv.innerHTML = '<div class="empty"><span class="serif">Could not load balances</span>Please check your connection and retry.</div>';
-    }
+  $('#bAsset').innerHTML = stocks.map(a => `<option value="${esc(a.id)}">${esc(a.symbol)} · ${esc(a.name)}</option>`).join('');
+  let pct = 2;
+  $$('#bPct button').forEach(b => b.onclick = () => { $$('#bPct button').forEach(x => x.classList.toggle('on', x === b)); pct = +b.dataset.p; draw(); });
+  $('#bAsset').onchange = draw; $('#bUsd').oninput = draw;
+  const band = a => { const lo = a.price * (1 + pct / 200), hi = a.price * (1 + pct / 100); return {lo, hi, avg: Math.sqrt(lo * hi)}; };
+  function draw() {
+    const a = stocks.find(x => x.id === $('#bAsset').value); if (!a) { $('#bOut').innerHTML = '<div class="empty">Stock prices are loading.</div>'; return; }
+    const usd = parseFloat($('#bUsd').value) || 0, b = band(a), sh = usd / a.price, apr = stockApr(a);
+    const min = a.price * 0.985, max = b.hi * 1.015, x = v => ((v - min) / (max - min) * 100).toFixed(2) + '%';
+    $('#bOut').innerHTML = `<div class="band-viz"><div class="zone" style="left:${x(b.lo)};width:calc(${x(b.hi)} - ${x(b.lo)})"></div><div class="now" style="left:${x(a.price)}"></div><span style="left:${x(a.price)}">Now ${O.usd(a.price)}</span><span style="left:${x(b.hi)}">${O.usd(b.hi)}</span></div>
+      <div class="kv"><span class="faint">Band</span><b class="mono">${O.usd(b.lo)} to ${O.usd(b.hi)}</b></div>
+      <div class="kv"><span class="faint">Shares in band</span><b class="mono">${O.num(sh, 4)} ${esc(a.symbol)}</b></div>
+      <div class="kv"><span class="faint">If price runs through the top, you receive</span><b class="mono up">${O.usd(sh * b.avg, 2)}</b></div>
+      <div class="kv"><span class="faint">Average sale price</span><b class="mono">${O.usd(b.avg)}</b></div>
+      <div class="kv"><span class="faint">Fee APR while price is inside</span><b class="mono">${apr ? apr.toFixed(2) + '%' : 'Varies with volume'}</b></div>`;
+  }
+  draw();
+  $('#bSet').onclick = () => {
+    const a = stocks.find(x => x.id === $('#bAsset').value), usd = parseFloat($('#bUsd').value);
+    if (!a || !(usd > 0)) return O.toast('Pick an asset and a size', 'err');
+    const b = band(a), os = O.store.get('orders', []);
+    os.unshift({id: a.id, symbol: a.symbol, side: 'sell', limit: +b.avg.toFixed(4), usd, created: Date.now(), expires: null, status: 'open', band: {lo: b.lo, hi: b.hi, pct, entry: a.price}});
+    O.store.set('orders', os); if (O.askNotify) O.askNotify().catch(() => {});
+    O.toast(`Band set on ${a.symbol}: ${O.usd(b.lo)} to ${O.usd(b.hi)}`, 'ok'); bands();
   };
+  function bands() {
+    const os = O.store.get('orders', []).filter(o => o.band && o.status !== 'cancelled'), el = $('#bands');
+    if (!os.length) { el.innerHTML = '<div class="empty"><span class="serif">No bands yet</span>Set one above and it appears here, tracked live.</div>'; return; }
+    el.innerHTML = os.map(o => { const a = assets.find(x => x.id === o.id), p = a ? a.price : null;
+      const st = o.status === 'filled' ? '<span class="chip mint">Sold</span>' : p == null ? '<span class="chip">Waiting</span>' : p >= o.band.hi ? '<span class="chip mint">Through the top</span>' : p >= o.band.lo ? '<span class="chip lav">Earning</span>' : '<span class="chip">Below band</span>';
+      return `<div class="idle-row"><span><b>${esc(o.symbol)}</b><small class="faint" style="display:block">+${o.band.pct}% band, set ${O.ago(o.created)}</small></span><span class="mono">${O.usd(o.band.lo)} to ${O.usd(o.band.hi)}</span><span>${st} <small class="faint">now ${p ? O.usd(p) : '-'}</small></span><button class="btn btn-ghost btn-sm" data-stop="${o.created}">Stop</button></div>`; }).join('');
+    $$('[data-stop]', el).forEach(b => b.onclick = () => { const all = O.store.get('orders', []), o = all.find(x => String(x.created) === b.dataset.stop && x.band); if (o) { o.status = 'cancelled'; O.store.set('orders', all); } bands(); O.toast('Band stopped. Nothing is locked.'); });
+  }
+  bands();
 });
 </script>
-</body>
-</html>
+</body></html>
