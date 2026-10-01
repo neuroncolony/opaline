@@ -18,7 +18,6 @@
 <body>
 <main>
 <section class="wrap hero" id="hero">
-  <span class="chip mint rv"><span class="pulse"></span> <b id="sCount">-</b> tokenized assets live</span>
   <h1 class="title rv rv-1">Own the <em>real world</em>,<br>one tap at a time.</h1>
   <p class="lead rv rv-2">Stocks, ETFs, gold and treasuries from every major issuer, priced live and routed across 20+ chains. Pay with whatever you hold. Keep your own keys.</p>
   <form class="hsearch rv rv-3" id="hSearch"><input class="input" id="hq" placeholder="Search NVIDIA, gold, S&amp;P 500, T-bills..." autocomplete="off"><button class="btn btn-grad">Search</button></form>
@@ -71,7 +70,7 @@
 </main>
 <style>
 .hero{text-align:center;padding-top:72px;max-width:900px}
-.hero .title{font-size:clamp(44px,7.4vw,98px);margin-top:18px}
+.hero .title{font-size:clamp(44px,7.4vw,98px);margin-top:0}
 .hero .lead{margin:16px auto 0;max-width:620px}
 .hsearch{display:flex;gap:8px;max-width:560px;margin:30px auto 0;padding:6px;border-radius:999px;background:var(--card);border:1px solid var(--line);box-shadow:0 12px 40px -18px rgba(80,70,140,.35);backdrop-filter:blur(14px)}
 .hsearch .input{border:0;background:transparent;border-radius:999px;padding:12px 18px;box-shadow:none}
@@ -80,7 +79,7 @@
 .hstats div{padding:14px 10px;border-left:1px solid var(--line)}.hstats div:first-child{border-left:0}
 .hstats span{display:block;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--faint)}
 .hstats b{font-family:var(--serif);font-weight:400;font-size:26px;line-height:1.2}
-.mini-movers{display:flex;align-items:center;justify-content:center;gap:10px;margin:18px auto 0;max-width:720px}
+.mini-movers{display:flex;flex-direction:column;align-items:center;gap:10px;margin:22px auto 0;max-width:720px}
 .mm-l{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--faint)}
 .mm-row{display:flex;gap:6px;overflow:hidden;flex-wrap:wrap;justify-content:center}
 .mm{display:inline-flex;align-items:center;gap:6px;padding:4px 10px 4px 4px;border-radius:999px;background:var(--card);border:1px solid var(--line);font-size:12px;transition:transform .25s var(--ease),background .2s}
@@ -101,7 +100,7 @@
 .steps>div{display:flex;gap:14px;align-items:flex-start;padding:18px;border-radius:20px;border:1px solid var(--line);background:var(--card);backdrop-filter:blur(14px)}
 .steps b{font-size:40px;line-height:1;font-weight:400}.steps h3{font-size:16px}.steps p{font-size:13px;margin-top:4px}
 @media(max-width:1000px){.cls-grid{grid-template-columns:repeat(3,1fr)}.bento{grid-template-columns:1fr 1fr}.b-wide{grid-row:auto;grid-column:span 2}.ygrid{grid-template-columns:1fr 1fr}}
-@media(max-width:640px){.hero{padding-top:40px}.hstats{grid-template-columns:1fr 1fr}.hstats div:nth-child(3){border-left:0}.hstats div:nth-child(n+3){border-top:1px solid var(--line)}.cls-grid{grid-template-columns:1fr 1fr}.bento,.steps{grid-template-columns:1fr}.b-wide{grid-column:auto}.mini-movers{flex-direction:column;gap:8px}.mm-row{max-width:100%}.mm:nth-child(n+5){display:none}}
+@media(max-width:640px){.hero{padding-top:40px}.hstats{grid-template-columns:1fr 1fr}.hstats div:nth-child(3){border-left:0}.hstats div:nth-child(n+3){border-top:1px solid var(--line)}.cls-grid{grid-template-columns:1fr 1fr}.bento,.steps{grid-template-columns:1fr}.b-wide{grid-column:auto}.mm-row{max-width:100%}.mm:nth-child(n+5){display:none}}
 </style>
 <script>
 document.addEventListener('DOMContentLoaded', async () => {
@@ -112,7 +111,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   let as = [];
   try { as = await O.assets(); } catch (e) { O.$('#movers').innerHTML = '<span class="faint" style="font-size:12px">Market data is warming up.</span>'; return; }
   const cap = as.reduce((s, a) => s + (a.mcap || 0), 0), vol = as.reduce((s, a) => s + (a.volume || 0), 0);
-  O.countUp(O.$('#sCount'), as.length, v => Math.round(v)); O.countUp(O.$('#sCap'), cap); O.countUp(O.$('#sVol'), vol);
+  O.countUp(O.$('#sCap'), cap); O.countUp(O.$('#sVol'), vol);
   const liquid = as.filter(a => a.volume > 250000 && a.mcap > 5e6 && a.ch24h != null && a.image && !/missing/.test(a.image));
   const movers = liquid.slice().sort((a, b) => Math.abs(b.ch24h) - Math.abs(a.ch24h)).slice(0, 5);
   O.$('#movers').innerHTML = movers.map(a => `<a class="mm" href="/asset/${a.id}"><img src="${esc(a.image)}" alt=""><b>${esc(a.symbol)}</b><span class="${O.pctCls(a.ch24h)} mono">${O.pct(a.ch24h)}</span></a>`).join('');

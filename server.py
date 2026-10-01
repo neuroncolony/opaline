@@ -283,7 +283,8 @@ LIFI_ALLOW = re.compile(r"^(quote|status|tokens|token|chains|tools|gas/prices|wa
 ROUTES = {"": "index", "markets": "markets", "baskets": "baskets", "pools": "pools", "earn": "earn",
           "lend": "lend", "strategies": "strategies", "issuers": "issuers", "compare": "compare",
           "auto-invest": "auto-invest", "orders": "orders", "agent": "agent", "portfolio": "portfolio",
-          "watchlist": "watchlist", "docs": "docs", "swap": "swap", "alerts": "alerts"}
+          "watchlist": "watchlist", "docs": "docs", "swap": "swap", "alerts": "alerts",
+          "terms": "terms", "privacy": "privacy", "risk": "risk"}
 PREFIX_ROUTES = {"asset": "asset", "basket": "basket", "issuer": "issuer"}
 MIME = {".html": "text/html; charset=utf-8", ".css": "text/css; charset=utf-8", ".js": "application/javascript; charset=utf-8",
         ".svg": "image/svg+xml", ".png": "image/png", ".ico": "image/x-icon", ".json": "application/json",

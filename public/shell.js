@@ -194,7 +194,8 @@ function renderFooter() {
     <div><h4>Markets</h4><a href="/markets">All markets</a><a href="/compare">Issuer spreads</a><a href="/issuers">Issuers</a><a href="/pools">Pools</a></div>
     <div><h4>Invest</h4><a href="/baskets">Baskets</a><a href="/strategies">Strategies</a><a href="/earn">Yield</a><a href="/lend">Lend and borrow</a><a href="/auto-invest">Auto-invest</a></div>
     <div><h4>You</h4><a href="/portfolio">Portfolio</a><a href="/watchlist">Watchlist</a><a href="/orders">Orders</a><a href="/alerts">Alerts</a><a href="/docs">Docs</a></div>
-  </div><div class="row between wrapf" style="margin-top:36px;font-size:13px"><span class="faint">\u00a9 ${new Date().getFullYear()} Opaline</span><span class="row faint"><span class="pulse"></span> <span id="dataAge">Live data</span></span></div></div></footer>`));
+  </div><div class="ftr-base"><span>\u00a9 ${new Date().getFullYear()} Opaline Labs. All rights reserved.</span><nav><a href="/terms">Terms of Service</a><a href="/privacy">Privacy Policy</a><a href="/risk">Risk Disclosure</a><a href="/docs">Docs</a></nav></div>
+  <p class="ftr-legal">Opaline is a non-custodial interface. It does not hold user funds, execute trades on anyone's behalf, or issue any token. Tokenized assets are issued by third parties and may be unavailable to residents of certain jurisdictions, including the United States. Prices and data are provided for information only and are not investment, legal or tax advice.</p></div></footer>`));
 }
 
 /* ---------- toasts + modal ---------- */
@@ -561,7 +562,6 @@ function boot() {
   if (!document.querySelector('link[rel=icon]')) document.head.appendChild(O.h('<link rel="icon" href="/logo-mark.svg" type="image/svg+xml">'));
   renderHeader(); renderFooter(); paintWallet(); restoreWallet(); O.reveal(); O.resumeTracking();
   setTimeout(O.checkTriggers, 4000); setInterval(O.checkTriggers, 45000);
-  O.api('health', {ttl: 60000}).then(h => { const el = $('#dataAge'); if (el && h.assets) el.textContent = `Live data, ${h.assets} assets, updated ${Math.max(1, Math.round(h.assetsAge / 60))}m ago`; }).catch(() => {});
   new MutationObserver(() => O.reveal()).observe(document.body, {childList: true, subtree: true});
 }
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot); else boot();
