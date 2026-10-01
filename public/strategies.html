@@ -35,6 +35,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const S = [
     {n: 'Magnificent Seven', risk: 'Bold', tint: 'lav', d: 'The seven companies that set the pace for global equities, held in equal slices.', items: eq(['AAPL','MSFT','NVDA','GOOGL','AMZN','META','TSLA'].map(pick))},
     {n: 'AI builders', risk: 'Bold', tint: 'rose', d: 'Chips, cloud and software: the picks and shovels behind the AI buildout.', items: eq(['NVDA','AMD','AVGO','TSM','MSFT','PLTR'].map(pick))},
+    {n: 'Congress tracker', risk: 'Bold', tint: 'peach', d: 'The large-cap tech names most often disclosed in congressional trade filings, held in equal slices.', items: eq(['NVDA','AAPL','MSFT','GOOGL','AMZN','AVGO','CRM','PANW','TSLA'].map(pick))},
     {n: 'Dividend garden', risk: 'Balanced', tint: 'mint', d: 'Household names with long records of paying shareholders, season after season.', items: eq(['KO','PEP','JNJ','PG','MCD','O','XOM','JPM'].map(pick))},
     {n: 'Index core', risk: 'Balanced', tint: 'sky', d: 'Broad market exposure in a handful of tokens. The quiet engine of most portfolios.', items: (() => { const l = ['SPY','QQQ','VTI','IWM'].map(pick).filter(Boolean); return eq(l.length >= 2 ? l : byClass('etf', 3)); })()},
     {n: 'Safe harbor', risk: 'Calm', tint: 'butter', d: 'Short-term treasuries and gold. Built to hold value when everything else is loud.', items: eq([...tr, gold()])},

@@ -284,7 +284,7 @@ ROUTES = {"": "index", "markets": "markets", "baskets": "baskets", "pools": "poo
           "lend": "lend", "strategies": "strategies", "issuers": "issuers", "compare": "compare",
           "auto-invest": "auto-invest", "orders": "orders", "agent": "agent", "portfolio": "portfolio",
           "watchlist": "watchlist", "docs": "docs", "swap": "swap", "alerts": "alerts",
-          "terms": "terms", "privacy": "privacy", "risk": "risk"}
+          "terms": "terms", "privacy": "privacy", "risk": "risk", "yield": "yield", "roadmap": "roadmap", "security": "security"}
 PREFIX_ROUTES = {"asset": "asset", "basket": "basket", "issuer": "issuer"}
 MIME = {".html": "text/html; charset=utf-8", ".css": "text/css; charset=utf-8", ".js": "application/javascript; charset=utf-8",
         ".svg": "image/svg+xml", ".png": "image/png", ".ico": "image/x-icon", ".json": "application/json",
@@ -312,6 +312,7 @@ class H(BaseHTTPRequestHandler):
         self.send_header("Cache-Control", cache)
         self.send_header("X-Content-Type-Options", "nosniff")
         self.send_header("Referrer-Policy", "strict-origin-when-cross-origin")
+        self.send_header("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
         self.send_header("X-Frame-Options", "SAMEORIGIN")
         self.send_header("Permissions-Policy", "camera=(), microphone=(), geolocation=()")
         if gz:

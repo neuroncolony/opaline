@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Roadmap | Lustre</title>
+<meta name="description" content="What is live today and what ships next. Every item links straight to the page where it works right now.">
+<meta name="theme-color" content="#f6f5fb">
+<meta property="og:title" content="Roadmap | Lustre">
+<meta property="og:description" content="What is live today and what ships next. Every item links straight to the page where it works right now.">
+<meta property="og:image" content="/og.png">
+<link rel="icon" href="/logo-mark.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="/icon-180.png">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="stylesheet" href="/styles.css">
+<script>try{document.documentElement.dataset.theme=JSON.parse(localStorage.getItem('opal:theme3'))||'light'}catch(e){}</script>
+<script src="/shell.js" defer></script>
+<script src="/basket-lib.js" defer></script>
+</head>
+<body>
+<main><section class="wrap">
+<div class="page-head"><div><h1 class="title rv rv-1">Built in <em>the open.</em></h1><p class="lead rv rv-2">Everything marked Live is running in production today, and every next step is named before it ships.</p></div></div>
+<div class="row between" style="margin-bottom:18px"><span class="chip" id="sum">Counting</span><a class="btn btn-soft btn-sm" href="/security">Public audit</a></div>
+<div class="grid g3" id="grid"></div>
+</section></main>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const {esc, $} = O;
+  const live = [
+    {n: 'Markets', d: 'Live prices for every tokenized stock, ETF, commodity and treasury on the platform.', href: '/markets'},
+    {n: 'Issuer spreads', d: 'Compare pricing across issuers on the same underlying and pick the best route.', href: '/compare'},
+    {n: 'Swap and bridge', d: 'Cross chain swaps routed through LI.FI with quotes in one tap.', href: '/swap'},
+    {n: 'Baskets', d: 'Build, save and rebalance your own mixes of tokenized assets.', href: '/baskets'},
+    {n: 'Strategies', d: 'Ready made allocations with live weights you can invest in one click.', href: '/strategies'},
+    {n: 'Auto-invest', d: 'Recurring buys that run on your schedule, executed from your own wallet.', href: '/auto-invest'},
+    {n: 'Lend and borrow', d: 'Supply collateral and borrow against it, with live rates.', href: '/lend'},
+    {n: 'Yield', d: 'Earn on idle balances across integrated vaults and protocols.', href: '/earn'},
+    {n: 'Asset Yield', d: 'Yield detail per asset with sources and current rates.', href: '/yield'},
+    {n: 'Liquidity pools', d: 'Provide liquidity, track positions and earned fees.', href: '/pools'},
+    {n: 'Limit orders', d: 'Set a target price and the order triggers while you are away.', href: '/orders'},
+    {n: 'Price alerts', d: 'Notifications stored locally and fired on live prices.', href: '/alerts'},
+    {n: 'Agent', d: 'A wallet aware assistant that can act on markets and your portfolio.', href: '/agent'},
+    {n: 'Portfolio', d: 'Full position view across assets, baskets, pools and borrows.', href: '/portfolio'},
+    {n: 'Watchlist', d: 'Track any asset with live prices in one place.', href: '/watchlist'},
+    {n: 'Mobile app', d: 'Installable PWA: add Lustre to your home screen and run it full screen.', href: '/docs'},
+    {n: 'Public audit', d: 'Routes, headers and scripts checked on every release, results published as JSON.', href: '/security'},
+  ];
+  const next = [
+    {n: 'Launch your own asset', d: 'Issue your own tokenized asset on Lustre with a guided flow.'},
+    {n: 'Holder perks', d: 'Rewards attached to holding specific assets, claimed on chain.'},
+    {n: 'Cross-issuer rebalancing vault', d: 'One vault that keeps your basket on the cheapest issuer automatically.'},
+  ];
+  const chip = s => s === 'Live' ? '<span class="chip mint">Live</span>' : '<span class="chip lav">Next</span>';
+  const card = (it, k) => `<div class="card hover spot tint-${['mint','lav','sky','butter','peach','rose'][k % 6]} rv rv-${k % 3}"><div class="row between"><h3 style="font-size:19px">${esc(it.n)}</h3>${chip(it.live)}</div><p class="muted" style="font-size:14px;margin-top:8px;flex:1">${esc(it.d)}</p>${it.live ? `<div class="row" style="margin-top:14px"><a class="btn btn-soft btn-sm" href="${it.href}">Open</a></div>` : ''}</div>`;
+  const all = live.map(i => ({...i, live: 'Live'})).concat(next.map(i => ({...i, live: 'Next'})));
+  $('#grid').innerHTML = all.map(card).join('');
+  $('#sum').textContent = `${live.length} of ${all.length} live`;
+});
+</script>
+</body></html>

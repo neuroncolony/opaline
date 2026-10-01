@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Security | Lustre</title>
+<meta name="description" content="Every route, header and script checked on each release. The raw results are published as JSON.">
+<meta name="theme-color" content="#f6f5fb">
+<meta property="og:title" content="Security | Lustre">
+<meta property="og:description" content="Every route, header and script checked on each release. The raw results are published as JSON.">
+<meta property="og:image" content="/og.png">
+<link rel="icon" href="/logo-mark.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="/icon-180.png">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="stylesheet" href="/styles.css">
+<script>try{document.documentElement.dataset.theme=JSON.parse(localStorage.getItem('opal:theme3'))||'light'}catch(e){}</script>
+<script src="/shell.js" defer></script>
+<script src="/basket-lib.js" defer></script>
+</head>
+<body>
+<main><section class="wrap">
+<div class="page-head"><div><h1 class="title rv rv-1">Audited, <em>in public.</em></h1><p class="lead rv rv-2">Every route, header and script checked on each release. The raw results are published as JSON.</p></div></div>
+<div class="grid g4" id="stats" style="margin-bottom:18px"><div class="skel" style="height:100px"></div><div class="skel" style="height:100px"></div><div class="skel" style="height:100px"></div><div class="skel" style="height:100px"></div></div>
+<div id="groups" style="display:grid;gap:14px"></div>
+<div class="card spot tint-lav" style="margin-top:18px"><div class="row between wrapf"><h3 class="h2" style="font-size:20px">How Lustre is built</h3><a class="btn btn-soft btn-sm" href="/audit.json" target="_blank" rel="noopener">View raw audit JSON</a></div>
+<p class="muted" style="font-size:14px;margin-top:8px">Non-custodial: every trade is signed in your wallet and no Lustre contract ever holds funds. There are no accounts; orders, alerts and auto-invest plans are stored only in your browser. Swaps route through LI.FI, and market data comes from CoinGecko and DefiLlama.</p></div>
+</section></main>
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+  const {esc, $} = O;
+  const ago = ts => { const s = Math.max(1, Math.floor(Date.now() / 1000 - ts)); const u = [[31536000,'y'],[2592000,'mo'],[604800,'w'],[86400,'d'],[3600,'h'],[60,'m']]; for (const [v,l] of u) if (s >= v) return Math.floor(s / v) + l + ' ago'; return s + 's ago'; };
+  const stat = (v, l, tint) => `<div class="card spot tint-${tint}"><div class="kv"><b style="font-size:28px">${esc(String(v))}</b><span class="faint" style="font-size:13px">${esc(l)}</span></div></div>`;
+  try {
+    const r = await fetch('/audit.json', {cache: 'no-store'});
+    const a = await r.json();
+    $('#stats').innerHTML = stat(a.summary.passed, 'passed', 'mint') + stat(a.summary.failed, 'failed', a.summary.failed ? 'rose' : 'sky') + stat(a.summary.total, 'total', 'lav') + stat(ago(a.ts), 'last run', 'butter');
+    $('#groups').innerHTML = a.groups.map(g => `<div class="card spot tint-mint"><div class="row between"><h3 style="font-size:19px">${esc(g.name)}</h3><span class="chip ${g.checks.every(c => c.ok) ? 'mint' : 'rose'}">${g.checks.filter(c => c.ok).length}/${g.checks.length}</span></div><div style="margin-top:10px;display:grid;gap:6px">${g.checks.map(c => `<div class="row between" style="gap:10px"><div class="row" style="gap:8px;min-width:0"><span class="chip ${c.ok ? 'mint' : 'rose'}" style="flex:none">${c.ok ? 'Pass' : 'Fix'}</span><span style="font-size:14px">${esc(c.name)}</span></div><span class="faint mono" style="font-size:12px;text-align:right">${esc(c.detail)}</span></div>`).join('')}</div></div>`).join('');
+  } catch (e) {
+    $('#stats').innerHTML = '<div class="card" style="grid-column:1/-1"><span class="serif">Audit results unavailable</span>Could not load /audit.json. Refresh in a moment.</div>';
+  }
+});
+</script>
+</body></html>

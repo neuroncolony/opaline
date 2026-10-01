@@ -150,6 +150,7 @@ O.NAV = [
     {href: '/strategies', t: 'Strategies', d: 'Curated allocations with backtests', ic: 'target', c: 'butter'},
   ]},
   {label: 'Earn', items: [
+    {href: '/yield', t: 'Asset Yield', d: 'See what is idle and put it to work in one click', ic: 'spark', c: 'butter'},
     {href: '/earn', t: 'Yield', d: 'Best RWA yields across protocols', ic: 'leaf', c: 'mint'},
     {href: '/lend', t: 'Lend and borrow', d: 'Borrow against tokenized equities and bonds', ic: 'bank', c: 'sky'},
   ]},

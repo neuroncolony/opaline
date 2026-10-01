@@ -1,0 +1,326 @@
+{
+  "ts": 1790874628,
+  "base": "https://opaline-production.up.railway.app",
+  "summary": {
+    "passed": 55,
+    "failed": 4,
+    "total": 59
+  },
+  "groups": [
+    {
+      "name": "Routes",
+      "checks": [
+        {
+          "name": "GET /",
+          "ok": true,
+          "detail": "200, 48ms"
+        },
+        {
+          "name": "GET /markets",
+          "ok": true,
+          "detail": "200, 29ms"
+        },
+        {
+          "name": "GET /baskets",
+          "ok": true,
+          "detail": "200, 20ms"
+        },
+        {
+          "name": "GET /pools",
+          "ok": true,
+          "detail": "200, 23ms"
+        },
+        {
+          "name": "GET /earn",
+          "ok": true,
+          "detail": "200, 20ms"
+        },
+        {
+          "name": "GET /lend",
+          "ok": true,
+          "detail": "200, 27ms"
+        },
+        {
+          "name": "GET /strategies",
+          "ok": true,
+          "detail": "200, 25ms"
+        },
+        {
+          "name": "GET /issuers",
+          "ok": true,
+          "detail": "200, 22ms"
+        },
+        {
+          "name": "GET /compare",
+          "ok": true,
+          "detail": "200, 20ms"
+        },
+        {
+          "name": "GET /auto-invest",
+          "ok": true,
+          "detail": "200, 21ms"
+        },
+        {
+          "name": "GET /orders",
+          "ok": true,
+          "detail": "200, 21ms"
+        },
+        {
+          "name": "GET /agent",
+          "ok": true,
+          "detail": "200, 22ms"
+        },
+        {
+          "name": "GET /portfolio",
+          "ok": true,
+          "detail": "200, 22ms"
+        },
+        {
+          "name": "GET /watchlist",
+          "ok": true,
+          "detail": "200, 33ms"
+        },
+        {
+          "name": "GET /docs",
+          "ok": true,
+          "detail": "200, 20ms"
+        },
+        {
+          "name": "GET /swap",
+          "ok": true,
+          "detail": "200, 20ms"
+        },
+        {
+          "name": "GET /alerts",
+          "ok": true,
+          "detail": "200, 22ms"
+        },
+        {
+          "name": "GET /terms",
+          "ok": true,
+          "detail": "200, 21ms"
+        },
+        {
+          "name": "GET /privacy",
+          "ok": true,
+          "detail": "200, 20ms"
+        },
+        {
+          "name": "GET /risk",
+          "ok": true,
+          "detail": "200, 21ms"
+        },
+        {
+          "name": "GET /roadmap",
+          "ok": false,
+          "detail": "404, 19ms"
+        },
+        {
+          "name": "GET /security",
+          "ok": false,
+          "detail": "404, 19ms"
+        },
+        {
+          "name": "GET /yield",
+          "ok": false,
+          "detail": "404, 18ms"
+        },
+        {
+          "name": "GET /api/health",
+          "ok": true,
+          "detail": "200, 20ms"
+        }
+      ]
+    },
+    {
+      "name": "Security headers",
+      "checks": [
+        {
+          "name": "x-content-type-options",
+          "ok": true,
+          "detail": "present"
+        },
+        {
+          "name": "x-frame-options or content-security-policy (frame-ancestors)",
+          "ok": true,
+          "detail": "present"
+        },
+        {
+          "name": "referrer-policy",
+          "ok": true,
+          "detail": "present"
+        },
+        {
+          "name": "strict-transport-security",
+          "ok": false,
+          "detail": "missing"
+        }
+      ]
+    },
+    {
+      "name": "JS syntax",
+      "checks": [
+        {
+          "name": "basket-lib.js",
+          "ok": true,
+          "detail": "node --check OK"
+        },
+        {
+          "name": "bg3d.js",
+          "ok": true,
+          "detail": "node --check OK"
+        },
+        {
+          "name": "shell.js",
+          "ok": true,
+          "detail": "node --check OK"
+        },
+        {
+          "name": "404.html (inline)",
+          "ok": true,
+          "detail": "2 block(s), OK"
+        },
+        {
+          "name": "agent.html (inline)",
+          "ok": true,
+          "detail": "2 block(s), OK"
+        },
+        {
+          "name": "alerts.html (inline)",
+          "ok": true,
+          "detail": "2 block(s), OK"
+        },
+        {
+          "name": "asset.html (inline)",
+          "ok": true,
+          "detail": "2 block(s), OK"
+        },
+        {
+          "name": "auto-invest.html (inline)",
+          "ok": true,
+          "detail": "2 block(s), OK"
+        },
+        {
+          "name": "basket.html (inline)",
+          "ok": true,
+          "detail": "2 block(s), OK"
+        },
+        {
+          "name": "baskets.html (inline)",
+          "ok": true,
+          "detail": "2 block(s), OK"
+        },
+        {
+          "name": "compare.html (inline)",
+          "ok": true,
+          "detail": "2 block(s), OK"
+        },
+        {
+          "name": "docs.html (inline)",
+          "ok": true,
+          "detail": "2 block(s), OK"
+        },
+        {
+          "name": "earn.html (inline)",
+          "ok": true,
+          "detail": "2 block(s), OK"
+        },
+        {
+          "name": "index.html (inline)",
+          "ok": true,
+          "detail": "2 block(s), OK"
+        },
+        {
+          "name": "issuer.html (inline)",
+          "ok": true,
+          "detail": "2 block(s), OK"
+        },
+        {
+          "name": "issuers.html (inline)",
+          "ok": true,
+          "detail": "2 block(s), OK"
+        },
+        {
+          "name": "lend.html (inline)",
+          "ok": true,
+          "detail": "2 block(s), OK"
+        },
+        {
+          "name": "markets.html (inline)",
+          "ok": true,
+          "detail": "2 block(s), OK"
+        },
+        {
+          "name": "orders.html (inline)",
+          "ok": true,
+          "detail": "2 block(s), OK"
+        },
+        {
+          "name": "pools.html (inline)",
+          "ok": true,
+          "detail": "2 block(s), OK"
+        },
+        {
+          "name": "portfolio.html (inline)",
+          "ok": true,
+          "detail": "2 block(s), OK"
+        },
+        {
+          "name": "privacy.html (inline)",
+          "ok": true,
+          "detail": "1 block(s), OK"
+        },
+        {
+          "name": "risk.html (inline)",
+          "ok": true,
+          "detail": "1 block(s), OK"
+        },
+        {
+          "name": "roadmap.html (inline)",
+          "ok": true,
+          "detail": "2 block(s), OK"
+        },
+        {
+          "name": "security.html (inline)",
+          "ok": true,
+          "detail": "2 block(s), OK"
+        },
+        {
+          "name": "strategies.html (inline)",
+          "ok": true,
+          "detail": "2 block(s), OK"
+        },
+        {
+          "name": "swap.html (inline)",
+          "ok": true,
+          "detail": "2 block(s), OK"
+        },
+        {
+          "name": "terms.html (inline)",
+          "ok": true,
+          "detail": "1 block(s), OK"
+        },
+        {
+          "name": "watchlist.html (inline)",
+          "ok": true,
+          "detail": "2 block(s), OK"
+        },
+        {
+          "name": "yield.html (inline)",
+          "ok": true,
+          "detail": "2 block(s), OK"
+        }
+      ]
+    },
+    {
+      "name": "Dash rule",
+      "checks": [
+        {
+          "name": "public/*.html, *.js, *.css",
+          "ok": true,
+          "detail": "0 em/en dashes"
+        }
+      ]
+    }
+  ]
+}
