@@ -3,11 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Docs | Opaline</title>
-<meta name="description" content="How Opaline routes, what it charges, where data comes from and how your keys stay yours.">
+<title>Docs | Lustre</title>
+<meta name="description" content="How Lustre routes, what it charges, where data comes from and how your keys stay yours.">
 <meta name="theme-color" content="#f6f5fb">
-<meta property="og:title" content="Docs | Opaline">
-<meta property="og:description" content="How Opaline routes, what it charges, where data comes from and how your keys stay yours.">
+<meta property="og:title" content="Docs | Lustre">
+<meta property="og:description" content="How Lustre routes, what it charges, where data comes from and how your keys stay yours.">
 <meta property="og:image" content="/og.png">
 <link rel="icon" href="/logo-mark.svg" type="image/svg+xml">
 <link rel="manifest" href="/manifest.webmanifest">
@@ -37,7 +37,7 @@
 <section class="wrap" style="padding-top:40px">
   <div class="page-head">
     <div>
-      <span class="eyebrow rv">How Opaline works</span>
+      <span class="eyebrow rv">How Lustre works</span>
       <h1 class="title rv rv-1">The <em>docs</em></h1>
       <p class="lead rv rv-2">Everything about routing, issuers, strategies, data and custody, in plain language.</p>
     </div>
@@ -45,7 +45,7 @@
 
   <div class="docs-grid">
     <nav class="toc rv" id="toc">
-      <a href="#what">What Opaline is</a>
+      <a href="#what">What Lustre is</a>
       <a href="#routing">How routing works</a>
       <a href="#chains">Chains and issuers</a>
       <a href="#buying">Buying and selling</a>
@@ -62,21 +62,21 @@
 
     <div class="col" style="gap:44px">
       <div class="doc-sec rv" id="what">
-        <h2 class="h2">What Opaline <em>is</em></h2>
-        <p>Opaline is a marketplace for tokenized real-world assets: stocks, ETFs, gold, treasuries and private credit, issued on public blockchains by regulated and unregulated issuers alike. It brings every issuer onto one screen, prices them live, and routes trades across chains.</p>
-        <p>Opaline is not a custodian and not a broker. It never holds your assets, never asks for a deposit, and adds no fee of its own. When you buy, tokens go straight to your wallet. When you sell, they go straight from it.</p>
+        <h2 class="h2">What Lustre <em>is</em></h2>
+        <p>Lustre is a marketplace for tokenized real-world assets: stocks, ETFs, gold, treasuries and private credit, issued on public blockchains by regulated and unregulated issuers alike. It brings every issuer onto one screen, prices them live, and routes trades across chains.</p>
+        <p>Lustre is not a custodian and not a broker. It never holds your assets, never asks for a deposit, and adds no fee of its own. When you buy, tokens go straight to your wallet. When you sell, they go straight from it.</p>
       </div>
 
       <div class="doc-sec rv" id="routing">
         <h2 class="h2">How routing <em>works</em></h2>
-        <p>Every trade is routed through LI.FI, an aggregator that sits on top of dozens of bridges and decentralized exchanges. When you press buy, Opaline asks the aggregator for the cheapest path from what you hold to the asset you want. You see the full quote: the amount in, the amount out, the route, the fees and the gas. One signature submits the whole thing.</p>
+        <p>Every trade is routed through LI.FI, an aggregator that sits on top of dozens of bridges and decentralized exchanges. When you press buy, Lustre asks the aggregator for the cheapest path from what you hold to the asset you want. You see the full quote: the amount in, the amount out, the route, the fees and the gas. One signature submits the whole thing.</p>
         <p>If you pay with a token the destination contract has not seen before, an approval transaction is requested first. That is standard for ERC-20 tokens: approve the router to spend the exact amount, then sign the swap. Native gas tokens need no approval.</p>
         <p>After signing, the trade is tracked until the destination chain confirms. The status appears in your recent activity with a link to the explorer.</p>
       </div>
 
       <div class="doc-sec rv" id="chains">
         <h2 class="h2">Supported chains and <em>issuers</em></h2>
-        <p>Opaline routes across every chain the aggregator supports, more than twenty EVM networks plus Solana. Assets from every major issuer are included: tokenized stock wrappers, ETF mantles, gold tokens, treasury tokens and private credit pools.</p>
+        <p>Lustre routes across every chain the aggregator supports, more than twenty EVM networks plus Solana. Assets from every major issuer are included: tokenized stock wrappers, ETF mantles, gold tokens, treasury tokens and private credit pools.</p>
         <div id="issuerLive" style="margin-top:18px"><div class="skel" style="height:220px"></div></div>
       </div>
 
@@ -89,29 +89,29 @@
 
       <div class="doc-sec rv" id="baskets">
         <h2 class="h2">Baskets and <em>sharing</em></h2>
-        <p>A basket is a named set of assets with weights. Build one, save it, and buy the whole thing in one pass: Opaline splits the amount by weight and runs one trade per asset. The agent can build one from a sentence, like <b>build a basket of NVDA, AAPL and gold</b>.</p>
+        <p>A basket is a named set of assets with weights. Build one, save it, and buy the whole thing in one pass: Lustre splits the amount by weight and runs one trade per asset. The agent can build one from a sentence, like <b>build a basket of NVDA, AAPL and gold</b>.</p>
         <p>Baskets can be shared. A share link encodes the assets and weights so anyone can preview it and buy the same mix. Shared baskets are content, not funds: nothing moves until someone decides to buy.</p>
       </div>
 
       <div class="doc-sec rv" id="strategies">
         <h2 class="h2">Strategies</h2>
-        <p>Strategies turn a market view into a repeatable action. The three Opaline ships with are limit orders (buy or sell at a price you choose), auto-invest plans (recurring buys on a schedule), and price alerts (get told when a line is crossed). All three run locally and are covered below.</p>
+        <p>Strategies turn a market view into a repeatable action. The three Lustre ships with are limit orders (buy or sell at a price you choose), auto-invest plans (recurring buys on a schedule), and price alerts (get told when a line is crossed). All three run locally and are covered below.</p>
       </div>
 
       <div class="doc-sec rv" id="orders">
         <h2 class="h2">Limit orders, alerts and <em>auto-invest</em></h2>
-        <p>These three features run entirely in your browser. Your orders, alerts and plans are stored in local storage, checked against live prices while Opaline is open, and never sent to a server.</p>
+        <p>These three features run entirely in your browser. Your orders, alerts and plans are stored in local storage, checked against live prices while Lustre is open, and never sent to a server.</p>
         <ul>
           <li><b>Limit orders.</b> You set a price and a size. When the market crosses your limit, the order is marked triggered and you get a notification. You then press Fill now and sign the trade yourself.</li>
           <li><b>Price alerts.</b> Above, below, or a percentage move in 24 hours. When one fires you get a notification, and it waits for you to re-arm it.</li>
           <li><b>Auto-invest.</b> A plan buys your assets on a rhythm: daily, weekly, biweekly or monthly. Each run opens the trade sheet for you to sign. Pause, edit or delete any time.</li>
         </ul>
-        <p>Because nothing executes without your signature, a closed tab means nothing fills. Open Opaline when it matters: that is the trade for keeping custody of your own keys.</p>
+        <p>Because nothing executes without your signature, a closed tab means nothing fills. Open Lustre when it matters: that is the trade for keeping custody of your own keys.</p>
       </div>
 
       <div class="doc-sec rv" id="yield">
         <h2 class="h2">Yield and lending <em>data sources</em></h2>
-        <p>Yield and lending figures come from DefiLlama, which indexes on-chain pools and money markets. Opaline shows APY, TVL, the project and the chain for each pool, and links to the underlying data. The figures are point-in-time reads of on-chain reality, not promises: rates on-chain move constantly.</p>
+        <p>Yield and lending figures come from DefiLlama, which indexes on-chain pools and money markets. Lustre shows APY, TVL, the project and the chain for each pool, and links to the underlying data. The figures are point-in-time reads of on-chain reality, not promises: rates on-chain move constantly.</p>
       </div>
 
       <div class="doc-sec rv" id="portfolio">
@@ -123,13 +123,13 @@
       <div class="doc-sec rv" id="agent">
         <h2 class="h2">The <em>Agent</em></h2>
         <p>The agent turns sentences into market answers. The built-in engine runs in your browser and handles a fixed set of commands: prices, issuer comparisons, top movers, best yields, basket building, price alerts and trades. Type <b>help</b> on the agent page for the full list.</p>
-        <p>For anything outside that list, you can supply your own model key in the agent settings. The key is stored only in your browser's local storage, and requests go directly from your browser to the provider. Opaline never sees it. Without a key, the built-in engine still covers every command above.</p>
+        <p>For anything outside that list, you can supply your own model key in the agent settings. The key is stored only in your browser's local storage, and requests go directly from your browser to the provider. Lustre never sees it. Without a key, the built-in engine still covers every command above.</p>
       </div>
 
       <div class="doc-sec rv" id="custody">
         <h2 class="h2">Self custody and <em>security</em></h2>
-        <p>Your keys stay in your wallet, full stop. Opaline never asks for a seed phrase, never holds a balance, and never takes custody mid-trade: the router moves assets from your wallet to your wallet in one transaction.</p>
-        <p>Opaline charges zero fees of its own. What you pay is gas plus the bridge or exchange fee inside the route, and every quote shows that breakdown before you sign. Sign only what you have read. An approval should always match the amount you intend to trade.</p>
+        <p>Your keys stay in your wallet, full stop. Lustre never asks for a seed phrase, never holds a balance, and never takes custody mid-trade: the router moves assets from your wallet to your wallet in one transaction.</p>
+        <p>Lustre charges zero fees of its own. What you pay is gas plus the bridge or exchange fee inside the route, and every quote shows that breakdown before you sign. Sign only what you have read. An approval should always match the amount you intend to trade.</p>
       </div>
 
       <div class="doc-sec rv" id="sources">
@@ -140,7 +140,7 @@
           <li><b>Pool and pair discovery:</b> DexScreener.</li>
           <li><b>Yield and lending rates:</b> DefiLlama.</li>
         </ul>
-        <p>All four are read as public data. Nothing you do on Opaline sends your keys, your wallet address or your orders to any of them beyond the calls needed to serve the page you are on.</p>
+        <p>All four are read as public data. Nothing you do on Lustre sends your keys, your wallet address or your orders to any of them beyond the calls needed to serve the page you are on.</p>
       </div>
 
       <div class="doc-sec rv" id="faq">
@@ -176,11 +176,11 @@ document.addEventListener('DOMContentLoaded', async () => {
   /* FAQ accordion */
   const QA = [
     ['Do I need an account?', 'No. There is no sign up, no email and no deposit. Connect a wallet when you want to trade, or browse and watch any address without one.'],
-    ['What does Opaline charge?', 'Zero added fees. You pay network gas plus whatever the bridge or exchange inside the route charges, and every quote shows that breakdown before you sign.'],
-    ['Where do my keys live?', 'In your wallet. Opaline never sees a seed phrase or a private key, and never takes custody of assets. Trades move tokens from your wallet to your wallet.'],
+    ['What does Lustre charge?', 'Zero added fees. You pay network gas plus whatever the bridge or exchange inside the route charges, and every quote shows that breakdown before you sign.'],
+    ['Where do my keys live?', 'In your wallet. Lustre never sees a seed phrase or a private key, and never takes custody of assets. Trades move tokens from your wallet to your wallet.'],
     ['Can I trade without connecting a wallet?', 'Browsing, alerts, baskets, orders, plans and the agent all work without a wallet. To sign a trade or an auto-invest run, a wallet is needed.'],
-    ['What happens if I close the tab while a limit order waits?', 'Nothing fills. Limit orders, alerts and auto-invest run in this browser, so Opaline needs to be open to detect a trigger. Nothing ever executes without your signature.'],
-    ['Are the tokenized stocks really backed?', 'That depends entirely on the issuer, not on Opaline. Each issuer documents its own structure and reserves. Opaline shows the same underlying from every issuer side by side so you can compare before you buy.'],
+    ['What happens if I close the tab while a limit order waits?', 'Nothing fills. Limit orders, alerts and auto-invest run in this browser, so Lustre needs to be open to detect a trigger. Nothing ever executes without your signature.'],
+    ['Are the tokenized stocks really backed?', 'That depends entirely on the issuer, not on Lustre. Each issuer documents its own structure and reserves. Lustre shows the same underlying from every issuer side by side so you can compare before you buy.'],
     ['What does the agent do with my data?', 'The built-in engine runs in your browser and sends nothing anywhere. If you add your own model key, it is stored in your browser only and requests go straight from your browser to the provider.'],
     ['Where does the market data come from?', 'Prices and market caps from CoinGecko, routing and balances from LI.FI, pool discovery from DexScreener, and yield rates from DefiLlama. All public APIs.']
   ];

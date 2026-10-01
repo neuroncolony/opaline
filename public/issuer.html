@@ -3,10 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Issuer | Opaline</title>
+<title>Issuer | Lustre</title>
 <meta name="description" content="Everything one issuer tokenizes: live assets, market cap, volume and chain coverage. Compare wrappers before you buy.">
 <meta name="theme-color" content="#f6f5fb">
-<meta property="og:title" content="Issuer | Opaline">
+<meta property="og:title" content="Issuer | Lustre">
 <meta property="og:description" content="Everything one issuer tokenizes: live assets, market cap, volume and chain coverage. Compare wrappers before you buy.">
 <meta property="og:image" content="/og.png">
 <link rel="icon" href="/logo-mark.svg" type="image/svg+xml">
@@ -33,7 +33,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   let ISS = null, ASSETS = [];
 
   function notFound() {
-    document.title = 'Issuer not found | Opaline';
+    document.title = 'Issuer not found | Lustre';
     $('#root').innerHTML = '<div class="card" style="margin-top:40px"><div class="empty"><span class="serif">Issuer not found</span>That issuer slug does not match anyone in the book.<div class="row" style="justify-content:center;margin-top:18px"><a class="btn btn-grad" href="/issuers">All issuers</a></div></div></div>';
   }
 
@@ -68,7 +68,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const mine = ASSETS.filter(a => a.issuer === id);
   if (!ISS && !mine.length) return notFound();
   const name = ISS ? ISS.name : (mine[0] ? mine[0].issuerName : id);
-  document.title = `${name} tokenized assets | Opaline`;
+  document.title = `${name} tokenized assets | Lustre`;
   const mcap = ISS ? ISS.mcap : mine.reduce((s, a) => s + (a.mcap || 0), 0);
   const vol = ISS ? ISS.volume : mine.reduce((s, a) => s + (a.volume || 0), 0);
   const classes = ISS ? ISS.classes : mine.reduce((m, a) => (m[a.class] = (m[a.class] || 0) + 1, m), {});

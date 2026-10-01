@@ -3,10 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Price alerts | Opaline</title>
+<title>Price alerts | Lustre</title>
 <meta name="description" content="Get notified the moment a tokenized asset crosses your line.">
 <meta name="theme-color" content="#f6f5fb">
-<meta property="og:title" content="Price alerts | Opaline">
+<meta property="og:title" content="Price alerts | Lustre">
 <meta property="og:description" content="Get notified the moment a tokenized asset crosses your line.">
 <meta property="og:image" content="/og.png">
 <link rel="icon" href="/logo-mark.svg" type="image/svg+xml">
@@ -45,7 +45,7 @@
         <input class="input" id="aVal" type="number" step="any" min="0" placeholder="0.00">
       </div>
       <button class="btn btn-grad btn-block btn-lg" id="aSave" style="margin-top:18px">Arm alert</button>
-      <p class="faint" style="font-size:12px;margin-top:14px">Alerts are checked every 45 seconds while Opaline is open. Enable notifications to hear about fires even in another tab.</p>
+      <p class="faint" style="font-size:12px;margin-top:14px">Alerts are checked every 45 seconds while Lustre is open. Enable notifications to hear about fires even in another tab.</p>
     </div>
 
     <div class="card rv rv-2" style="padding:26px">
@@ -71,8 +71,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     const has = typeof Notification !== 'undefined';
     const p = has ? Notification.permission : 'unsupported';
     if (p === 'granted') b.innerHTML = `<span class="row" style="gap:10px">${O.icon.bell}<span><b>Notifications on.</b> <span class="muted">Fired alerts will reach you even in another tab.</span></span></span>`;
-    else if (p === 'denied') b.innerHTML = `<span class="row" style="gap:10px">${O.icon.bell}<span><b>Notifications are blocked.</b> <span class="muted">Your browser settings control this. Alerts still fire inside Opaline.</span></span></span>`;
-    else if (p === 'unsupported') b.innerHTML = `<span class="row" style="gap:10px">${O.icon.bell}<span><b>This browser has no notification support.</b> <span class="muted">Alerts still fire inside Opaline.</span></span></span>`;
+    else if (p === 'denied') b.innerHTML = `<span class="row" style="gap:10px">${O.icon.bell}<span><b>Notifications are blocked.</b> <span class="muted">Your browser settings control this. Alerts still fire inside Lustre.</span></span></span>`;
+    else if (p === 'unsupported') b.innerHTML = `<span class="row" style="gap:10px">${O.icon.bell}<span><b>This browser has no notification support.</b> <span class="muted">Alerts still fire inside Lustre.</span></span></span>`;
     else b.innerHTML = `<span class="row between wrapf" style="gap:10px">${O.icon.bell}<span><b>Turn on notifications</b> <span class="muted">so fired alerts reach you, even in another tab.</span></span><button class="btn btn-primary" id="aEnable">Enable notifications</button></span>`;
     const en = $('#aEnable'); if (en) en.onclick = async () => { await O.askNotify(); paintPerm(); };
   };
@@ -101,7 +101,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     alerts.unshift({id: st.pick.id, symbol: st.pick.symbol, type: st.type, value: v, created: Date.now(), fired: 0});
     O.store.set('alerts', alerts);
     if (typeof Notification !== 'undefined' && Notification.permission === 'default') O.askNotify();
-    O.toast('Alert armed. It is checked against live prices while Opaline is open.', 'ok', 6000);
+    O.toast('Alert armed. It is checked against live prices while Lustre is open.', 'ok', 6000);
   };
 
   /* table */

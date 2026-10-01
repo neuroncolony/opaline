@@ -1,4 +1,4 @@
-# Opaline
+# Lustre
 
 A calm, self-custodial marketplace for tokenized real-world assets: stocks, ETFs, gold, treasuries and private credit from every major issuer, priced live and routed across 20+ chains.
 

@@ -3,10 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Baskets | Opaline</title>
+<title>Baskets | Lustre</title>
 <meta name="description" content="Build a portfolio of tokenized assets, backtest it, share it and buy it in one flow.">
 <meta name="theme-color" content="#f6f5fb">
-<meta property="og:title" content="Baskets | Opaline">
+<meta property="og:title" content="Baskets | Lustre">
 <meta property="og:description" content="Build a portfolio of tokenized assets, backtest it, share it and buy it in one flow.">
 <meta property="og:image" content="/og.png">
 <link rel="icon" href="/logo-mark.svg" type="image/svg+xml">
@@ -86,7 +86,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   $('#save').onclick = () => { if (!valid()) return; const all = O.store.get('baskets', []); const rec = {bid: editing || O.uid(), name: name(), items: items.map(i => ({id: i.id, w: i.w})), created: Date.now()}; const k = all.findIndex(b => b.bid === rec.bid); if (k >= 0) all[k] = rec; else all.unshift(rec); editing = rec.bid; O.store.set('baskets', all); O.toast('Basket saved', 'ok'); };
   $('#share').onclick = async () => { if (!valid()) return;
     try { const r = await fetch('/api/share', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({name: name(), note: '', author: O.wallet.account || '', items: items.map(i => ({id: i.id, w: i.w}))})}); const j = await r.json(); if (!r.ok) throw new Error(j.error);
-      const url = location.origin + '/basket/' + j.id; const md = O.modal('Share your basket', `<p class="muted">Anyone with this link can view and copy it.</p><div class="row" style="margin-top:14px"><input class="input mono" readonly value="${esc(url)}"><button class="btn btn-primary" data-c>Copy</button></div><a class="btn btn-soft btn-block" style="margin-top:10px" target="_blank" rel="noopener" href="https://x.com/intent/tweet?text=${encodeURIComponent('My ' + name() + ' basket on Opaline ' + url)}">Post on X</a>`);
+      const url = location.origin + '/basket/' + j.id; const md = O.modal('Share your basket', `<p class="muted">Anyone with this link can view and copy it.</p><div class="row" style="margin-top:14px"><input class="input mono" readonly value="${esc(url)}"><button class="btn btn-primary" data-c>Copy</button></div><a class="btn btn-soft btn-block" style="margin-top:10px" target="_blank" rel="noopener" href="https://x.com/intent/tweet?text=${encodeURIComponent('My ' + name() + ' basket on Lustre ' + url)}">Post on X</a>`);
       md.body.querySelector('[data-c]').onclick = () => { navigator.clipboard.writeText(url); O.toast('Link copied', 'ok'); };
     } catch (e) { O.toast(esc(e.message || 'Could not share'), 'err'); } };
   function load(b) { editing = b.bid || null; $('#bname').value = b.name || ''; items = b.items.map(i => ({id: i.id, w: +i.w, asset: map[i.id]})).filter(i => i.asset); draw(); $$('#tabs button')[0].click(); scrollTo({top: 0, behavior: 'smooth'}); }

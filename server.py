@@ -15,7 +15,7 @@ os.makedirs(DATA_DIR, exist_ok=True)
 PORT = int(os.environ.get("PORT", "8080"))
 CG = "https://api.coingecko.com/api/v3"
 CG_KEY = os.environ.get("OPALINE_CG_KEY", "")
-UA = "Mozilla/5.0 (compatible; OpalineRWA/1.0)"
+UA = "Mozilla/5.0 (compatible; LustreRWA/1.0)"
 
 CATEGORIES = [
     ("tokenized-stock", "stock"), ("tokenized-exchange-traded-funds-etfs", "etf"),

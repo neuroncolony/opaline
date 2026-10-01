@@ -3,10 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>__TITLE__ | Opaline</title>
+<title>__TITLE__ | Lustre</title>
 <meta name="description" content="__DESC__">
 <meta name="theme-color" content="#fbf8f4">
-<meta property="og:title" content="__TITLE__ | Opaline">
+<meta property="og:title" content="__TITLE__ | Lustre">
 <meta property="og:description" content="__DESC__">
 <meta property="og:image" content="/og.png">
 <link rel="icon" href="/logo-mark.svg" type="image/svg+xml">

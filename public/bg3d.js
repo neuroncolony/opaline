@@ -1,4 +1,4 @@
-/* Opaline token field: beveled opal coins drifting and tumbling cleanly behind the UI. */
+/* Lustre token field: beveled opal coins drifting and tumbling cleanly behind the UI. */
 (function () {
   'use strict';
   const CODES = ['gold','usd','eur','silver','yield','gbp','oil','jpy','bond','estate','chf','index'];

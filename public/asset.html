@@ -3,10 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Asset | Opaline</title>
+<title>Asset | Lustre</title>
 <meta name="description" content="Live price, chart, chains and every issuer of one tokenized asset. Compare wrappers, set alerts and trade in one tap.">
 <meta name="theme-color" content="#f6f5fb">
-<meta property="og:title" content="Asset | Opaline">
+<meta property="og:title" content="Asset | Lustre">
 <meta property="og:description" content="Live price, chart, chains and every issuer of one tokenized asset. Compare wrappers, set alerts and trade in one tap.">
 <meta property="og:image" content="/og.png">
 <link rel="icon" href="/logo-mark.svg" type="image/svg+xml">
@@ -44,14 +44,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     : (((O.CHAINS[c.chainId] || {}).exp) || 'https://etherscan.io') + '/token/' + (c.address || '');
 
   function notFound() {
-    document.title = 'Asset not found | Opaline';
+    document.title = 'Asset not found | Lustre';
     $('#root').innerHTML = '<div class="card" style="margin-top:40px"><div class="empty"><span class="serif">Asset not found</span>We could not find that asset. It may have been delisted or the link is off by a letter.<div class="row" style="justify-content:center;margin-top:18px"><a class="btn btn-grad" href="/markets">Back to markets</a></div></div></div>';
   }
 
   function hero() {
     const ch = (A.ch24h != null ? A.ch24h : (D && D.ch24h));
     $('#hTitle').innerHTML = `${esc(A.name)} <em>${esc(A.symbol)}</em>`;
-    document.title = `${A.name} (${A.symbol}) price | Opaline`;
+    document.title = `${A.name} (${A.symbol}) price | Lustre`;
     $('#hLead').textContent = `Tokenized by ${A.issuerName || 'an independent issuer'}, live on ${(A.chains || []).length || 1} chain${(A.chains || []).length === 1 ? '' : 's'}. Self-custodial trading, no added fees.`;
     $('#heroTop').innerHTML = `
       ${O.img(A.image, A.name)}
@@ -106,7 +106,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   function others() {
     const list = ALL.filter(x => x.id !== A.id && x.underlying === A.underlying && x.class === A.class && x.price != null);
     const sec = $('#othersSec');
-    if (!list.length) { sec.innerHTML = '<div class="card"><div class="empty"><span class="serif">Single issuer</span>This is the only tokenized wrapper of ' + esc(A.underlying) + ' on Opaline right now.</div></div>'; return; }
+    if (!list.length) { sec.innerHTML = '<div class="card"><div class="empty"><span class="serif">Single issuer</span>This is the only tokenized wrapper of ' + esc(A.underlying) + ' on Lustre right now.</div></div>'; return; }
     const cheapest = Math.min.apply(null, list.map(x => x.price).concat(A.price != null ? [A.price] : []));
     sec.innerHTML = `<div class="tbl-wrap"><table class="tbl"><thead><tr>
       <th>Asset</th><th>Issuer</th><th class="r">Price</th><th class="r">Premium vs cheapest</th><th class="r">24h volume</th><th></th>

@@ -1,4 +1,4 @@
-/* Opaline shell: shared UI, data, wallet, swap and watchers. Exposes window.O */
+/* Lustre shell: shared UI, data, wallet, swap and watchers. Exposes window.O */
 (function(){
 'use strict';
 const O = window.O = {};
@@ -169,7 +169,7 @@ function renderHeader() {
     ? `<div class="dd ${n.items.some(i => isOn(i.href)) ? 'on' : ''}"><button type="button">${n.label} ${I.down}</button><div class="dd-menu">${n.items.map(i => `<a href="${i.href}"><span class="ic chip ${i.c}" style="padding:0">${I[i.ic]}</span><span><b>${i.t}</b><small>${i.d}</small></span></a>`).join('')}</div></div>`
     : `<a href="${n.href}" class="${isOn(n.href) ? 'on' : ''}">${n.label}</a>`).join('');
   const hdr = O.h(`<header class="hdr"><div class="wrap"><div class="bar">
-    <a class="brand" href="/">${O.LOGO}<span>Opaline</span></a>
+    <a class="brand" href="/">${O.LOGO}<span>Lustre</span></a>
     <nav class="nav" id="nav">${nav}</nav>
     <div class="hdr-r">
       <button class="btn btn-soft btn-sm search-btn" id="cmdBtn" aria-label="Search">${I.search.replace('<svg', '<svg width="15" height="15"')}<span class="lbl-t">Search</span><span class="kbd">/</span></button>
@@ -190,12 +190,12 @@ function renderHeader() {
 }
 function renderFooter() {
   document.body.appendChild(O.h(`<footer class="ftr"><div class="wrap"><div class="cols">
-    <div><a class="brand" href="/">${O.LOGO}<span>Opaline</span></a><p style="margin-top:14px;max-width:340px">One calm place to discover, compare and own tokenized real-world assets across every chain. Self-custodial, routed live.</p><p class="faint" style="margin-top:14px;font-size:12px">Market data from public sources. Nothing here is investment advice.</p></div>
+    <div><a class="brand" href="/">${O.LOGO}<span>Lustre</span></a><p style="margin-top:14px;max-width:340px">One calm place to discover, compare and own tokenized real-world assets across every chain. Self-custodial, routed live.</p><p class="faint" style="margin-top:14px;font-size:12px">Market data from public sources. Nothing here is investment advice.</p></div>
     <div><h4>Markets</h4><a href="/markets">All markets</a><a href="/compare">Issuer spreads</a><a href="/issuers">Issuers</a><a href="/pools">Pools</a></div>
     <div><h4>Invest</h4><a href="/baskets">Baskets</a><a href="/strategies">Strategies</a><a href="/earn">Yield</a><a href="/lend">Lend and borrow</a><a href="/auto-invest">Auto-invest</a></div>
     <div><h4>You</h4><a href="/portfolio">Portfolio</a><a href="/watchlist">Watchlist</a><a href="/orders">Orders</a><a href="/alerts">Alerts</a><a href="/docs">Docs</a></div>
-  </div><div class="ftr-base"><span>\u00a9 ${new Date().getFullYear()} Opaline Labs. All rights reserved.</span><nav><a href="/terms">Terms of Service</a><a href="/privacy">Privacy Policy</a><a href="/risk">Risk Disclosure</a><a href="/docs">Docs</a></nav></div>
-  <p class="ftr-legal">Opaline is a non-custodial interface. It does not hold user funds, execute trades on anyone's behalf, or issue any token. Tokenized assets are issued by third parties and may be unavailable to residents of certain jurisdictions, including the United States. Prices and data are provided for information only and are not investment, legal or tax advice.</p></div></footer>`));
+  </div><div class="ftr-base"><span>\u00a9 ${new Date().getFullYear()} Lustre Labs. All rights reserved.</span><nav><a href="/terms">Terms of Service</a><a href="/privacy">Privacy Policy</a><a href="/risk">Risk Disclosure</a><a href="/docs">Docs</a></nav></div>
+  <p class="ftr-legal">Lustre is a non-custodial interface. It does not hold user funds, execute trades on anyone's behalf, or issue any token. Tokenized assets are issued by third parties and may be unavailable to residents of certain jurisdictions, including the United States. Prices and data are provided for information only and are not investment, legal or tax advice.</p></div></footer>`));
 }
 
 /* ---------- toasts + modal ---------- */
@@ -323,10 +323,10 @@ W.connect = async () => {
   await new Promise(r => setTimeout(r, 150));
   const list = W.providers.slice();
   if (!list.length && window.ethereum) list.push({info: {name: 'Browser wallet', uuid: 'injected', icon: '', rdns: 'injected'}, provider: window.ethereum});
-  if (!list.length) { O.modal('Connect a wallet', `<p class="muted">No browser wallet found. Install one to trade on Opaline. Browsing, alerts, baskets and the agent all work without one.</p><div class="grid g2" style="margin-top:18px"><a class="btn btn-soft" target="_blank" rel="noopener" href="https://metamask.io/download/">MetaMask</a><a class="btn btn-soft" target="_blank" rel="noopener" href="https://rabby.io">Rabby</a><a class="btn btn-soft" target="_blank" rel="noopener" href="https://www.coinbase.com/wallet">Coinbase Wallet</a><a class="btn btn-soft" target="_blank" rel="noopener" href="https://rainbow.me">Rainbow</a></div>`); return false; }
+  if (!list.length) { O.modal('Connect a wallet', `<p class="muted">No browser wallet found. Install one to trade on Lustre. Browsing, alerts, baskets and the agent all work without one.</p><div class="grid g2" style="margin-top:18px"><a class="btn btn-soft" target="_blank" rel="noopener" href="https://metamask.io/download/">MetaMask</a><a class="btn btn-soft" target="_blank" rel="noopener" href="https://rabby.io">Rabby</a><a class="btn btn-soft" target="_blank" rel="noopener" href="https://www.coinbase.com/wallet">Coinbase Wallet</a><a class="btn btn-soft" target="_blank" rel="noopener" href="https://rainbow.me">Rainbow</a></div>`); return false; }
   if (list.length === 1) { try { return await attach(list[0].provider, list[0].info); } catch (e) { O.toast(esc(e.message || 'Connection rejected'), 'err'); return false; } }
   return new Promise(res => {
-    const md = O.modal('Connect a wallet', `<div class="list-pick">${list.map((p, i) => `<button data-i="${i}">${p.info.icon ? `<img src="${esc(p.info.icon)}" alt="">` : `<span class="icon-btn">${I.wallet}</span>`}<b>${esc(p.info.name)}</b></button>`).join('')}</div><p class="faint" style="font-size:12px;margin-top:14px">Opaline never holds your keys. Every trade is signed in your wallet.</p>`, {onClose: () => res(!!W.account)});
+    const md = O.modal('Connect a wallet', `<div class="list-pick">${list.map((p, i) => `<button data-i="${i}">${p.info.icon ? `<img src="${esc(p.info.icon)}" alt="">` : `<span class="icon-btn">${I.wallet}</span>`}<b>${esc(p.info.name)}</b></button>`).join('')}</div><p class="faint" style="font-size:12px;margin-top:14px">Lustre never holds your keys. Every trade is signed in your wallet.</p>`, {onClose: () => res(!!W.account)});
     $$('[data-i]', md.body).forEach(b => b.onclick = async () => { const p = list[+b.dataset.i]; try { await attach(p.provider, p.info); md.close(); O.toast('Wallet connected', 'ok'); } catch (e) { O.toast(esc(e.message || 'Connection rejected'), 'err'); } });
   });
 };
@@ -442,7 +442,7 @@ O.openSwap = async (opts={}) => {
     <div data-route style="margin-top:14px"></div>
     <div class="row between" style="margin-top:12px;font-size:13px"><span class="faint">Max slippage</span><span class="tabs">${[0.3,0.5,1,2].map(s => `<button data-slip="${s}" class="${s == st.slip ? 'on' : ''}">${s}%</button>`).join('')}</span></div>
     <button class="btn btn-grad btn-lg btn-block" data-go style="margin-top:16px" disabled>Enter an amount</button>
-    <p class="faint" style="font-size:12px;text-align:center;margin-top:10px">Best route across 30+ bridges and DEXs. Opaline adds zero fees.</p></div>`);
+    <p class="faint" style="font-size:12px;text-align:center;margin-top:10px">Best route across 30+ bridges and DEXs. Lustre adds zero fees.</p></div>`);
   const md = O.modal(opts.title || 'Trade', body);
   const q = s => body.querySelector(s), go = q('[data-go]');
   const tb = (x, ch) => x ? `${O.img(x.logo || x.logoURI)}<span style="text-align:left">${esc(x.symbol)}<small class="faint" style="display:block;font-size:10px;font-weight:600;margin-top:-2px">${esc(O.chainName(ch))}</small></span>${I.down}` : 'Select';

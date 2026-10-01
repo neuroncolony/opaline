@@ -3,10 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Portfolio | Opaline</title>
+<title>Portfolio | Lustre</title>
 <meta name="description" content="See every tokenized position you hold across chains, self-custodial and read only.">
 <meta name="theme-color" content="#f6f5fb">
-<meta property="og:title" content="Portfolio | Opaline">
+<meta property="og:title" content="Portfolio | Lustre">
 <meta property="og:description" content="See every tokenized position you hold across chains, self-custodial and read only.">
 <meta property="og:image" content="/og.png">
 <link rel="icon" href="/logo-mark.svg" type="image/svg+xml">
@@ -28,7 +28,7 @@
   <div id="noWallet" class="card spot rv rv-1" style="padding:40px;text-align:center">
     <div class="sp"></div>
     <h2 class="h2">Connect to <em>see your holdings</em></h2>
-    <p class="lead" style="margin:12px auto 0;max-width:480px">Balances load across every chain Opaline supports. Tokenized assets are matched to live market prices automatically.</p>
+    <p class="lead" style="margin:12px auto 0;max-width:480px">Balances load across every chain Lustre supports. Tokenized assets are matched to live market prices automatically.</p>
     <div class="row" style="justify-content:center;margin-top:24px;gap:12px">
       <button class="btn btn-grad btn-lg magnet" id="pfConnect">Connect wallet</button>
     </div>
@@ -153,13 +153,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     /* activity */
     const h = O.history.list().slice(0, 6);
     $('#pfRecent').innerHTML = h.length ? h.map(x => `<div class="kv"><span class="row" style="gap:8px"><span class="chip ${x.status === 'DONE' ? 'mint' : x.status === 'FAILED' ? 'rose' : 'butter'}" style="min-width:70px;justify-content:center">${esc(x.status)}</span><span>${O.num(x.from ? x.from.amount : 0, 4)} ${esc(x.from ? x.from.symbol : '')} <span class="faint">&rarr;</span> ${O.num(x.to ? x.to.amount : 0, 4)} ${esc(x.to ? x.to.symbol : '')} <span class="faint" style="font-size:12px">${O.ago(x.ts)}</span></span></span><span class="row">${x.hash ? `<a class="faint" href="${O.explorerTx(x.fromChain, x.hash)}" target="_blank" rel="noopener">tx</a>` : ''}</span></div>`).join('')
-      : '<div class="empty"><span class="serif">No trades yet</span>Anything you execute on Opaline lands here.</div>';
+      : '<div class="empty"><span class="serif">No trades yet</span>Anything you execute on Lustre lands here.</div>';
   }
   const empty = () => {
     $('#pfStats').innerHTML = '';
     $('#pfRwa').innerHTML = '<div class="empty"><span class="serif">Could not load balances</span>The node or explorer did not answer. Press Refresh to try again.</div>';
     $('#pfOther').innerHTML = ''; $('#pfDonutClass').innerHTML = ''; $('#pfDonutAsset').innerHTML = '';
-    $('#pfRecent').innerHTML = O.history.list().length ? '' : '<div class="empty"><span class="serif">No trades yet</span>Anything you execute on Opaline lands here.</div>';
+    $('#pfRecent').innerHTML = O.history.list().length ? '' : '<div class="empty"><span class="serif">No trades yet</span>Anything you execute on Lustre lands here.</div>';
   };
 
   if (!addr) addr = O.store.get('pfWatch', null) || '';
