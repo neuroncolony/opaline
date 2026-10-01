@@ -248,3 +248,4 @@ footer.ftr .ftr-legal{margin-top:16px;font-size:12px;line-height:1.6;color:var(-
 .legal{max-width:760px;padding-top:60px}.legal h1{font-family:var(--serif);font-weight:400;font-size:clamp(40px,5vw,60px);line-height:1.05}
 .legal .upd{color:var(--ink3);font-size:13px;margin-top:10px}.legal h2{font-size:18px;margin-top:34px}
 .legal p,.legal li{font-size:15px;line-height:1.75;color:var(--ink2)}.legal p{margin-top:10px}.legal ul{padding-left:20px;margin-top:10px}
+[data-theme="dusk"] .brand svg,.dusk .brand svg{filter:invert(1) hue-rotate(180deg) brightness(1.1)}
