@@ -1,9 +1,9 @@
 {
-  "ts": 1790874628,
+  "ts": 1790874825,
   "base": "https://opaline-production.up.railway.app",
   "summary": {
-    "passed": 55,
-    "failed": 4,
+    "passed": 59,
+    "failed": 0,
     "total": 59
   },
   "groups": [
@@ -13,17 +13,17 @@
         {
           "name": "GET /",
           "ok": true,
-          "detail": "200, 48ms"
+          "detail": "200, 38ms"
         },
         {
           "name": "GET /markets",
           "ok": true,
-          "detail": "200, 29ms"
+          "detail": "200, 22ms"
         },
         {
           "name": "GET /baskets",
           "ok": true,
-          "detail": "200, 20ms"
+          "detail": "200, 24ms"
         },
         {
           "name": "GET /pools",
@@ -33,67 +33,67 @@
         {
           "name": "GET /earn",
           "ok": true,
-          "detail": "200, 20ms"
+          "detail": "200, 22ms"
         },
         {
           "name": "GET /lend",
           "ok": true,
-          "detail": "200, 27ms"
+          "detail": "200, 21ms"
         },
         {
           "name": "GET /strategies",
           "ok": true,
-          "detail": "200, 25ms"
+          "detail": "200, 28ms"
         },
         {
           "name": "GET /issuers",
           "ok": true,
-          "detail": "200, 22ms"
+          "detail": "200, 25ms"
         },
         {
           "name": "GET /compare",
           "ok": true,
-          "detail": "200, 20ms"
+          "detail": "200, 21ms"
         },
         {
           "name": "GET /auto-invest",
           "ok": true,
-          "detail": "200, 21ms"
+          "detail": "200, 20ms"
         },
         {
           "name": "GET /orders",
           "ok": true,
-          "detail": "200, 21ms"
+          "detail": "200, 20ms"
         },
         {
           "name": "GET /agent",
           "ok": true,
-          "detail": "200, 22ms"
+          "detail": "200, 23ms"
         },
         {
           "name": "GET /portfolio",
           "ok": true,
-          "detail": "200, 22ms"
+          "detail": "200, 19ms"
         },
         {
           "name": "GET /watchlist",
           "ok": true,
-          "detail": "200, 33ms"
+          "detail": "200, 21ms"
         },
         {
           "name": "GET /docs",
           "ok": true,
-          "detail": "200, 20ms"
+          "detail": "200, 23ms"
         },
         {
           "name": "GET /swap",
           "ok": true,
-          "detail": "200, 20ms"
+          "detail": "200, 23ms"
         },
         {
           "name": "GET /alerts",
           "ok": true,
-          "detail": "200, 22ms"
+          "detail": "200, 19ms"
         },
         {
           "name": "GET /terms",
@@ -103,27 +103,27 @@
         {
           "name": "GET /privacy",
           "ok": true,
-          "detail": "200, 20ms"
+          "detail": "200, 22ms"
         },
         {
           "name": "GET /risk",
           "ok": true,
-          "detail": "200, 21ms"
+          "detail": "200, 20ms"
         },
         {
           "name": "GET /roadmap",
-          "ok": false,
-          "detail": "404, 19ms"
+          "ok": true,
+          "detail": "200, 20ms"
         },
         {
           "name": "GET /security",
-          "ok": false,
-          "detail": "404, 19ms"
+          "ok": true,
+          "detail": "200, 21ms"
         },
         {
           "name": "GET /yield",
-          "ok": false,
-          "detail": "404, 18ms"
+          "ok": true,
+          "detail": "200, 22ms"
         },
         {
           "name": "GET /api/health",
@@ -152,8 +152,8 @@
         },
         {
           "name": "strict-transport-security",
-          "ok": false,
-          "detail": "missing"
+          "ok": true,
+          "detail": "present"
         }
       ]
     },
