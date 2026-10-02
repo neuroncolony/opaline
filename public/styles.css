@@ -260,3 +260,15 @@ footer.ftr .ftr-legal{margin-top:16px;font-size:12px;line-height:1.6;color:var(-
 .ca-pill:hover svg{color:var(--ink)}
 .ca-pill.copied{background:color-mix(in srgb,var(--mint) 55%,transparent);border-color:transparent}
 .ca-pill.copied code{color:var(--ink)}
+
+/* header contract pill: mint tinted so it reads as a live token link */
+.ca-pill.hdr{background:color-mix(in srgb,var(--mint) 60%,transparent);border-color:transparent;color:var(--ink);padding:7px 12px 7px 10px;font-size:13px;box-shadow:0 8px 22px -12px #119b7d88}
+.ca-pill.hdr code{color:var(--ink2);font-size:12px}
+.ca-pill.hdr svg{color:var(--ink2)}
+.ca-pill.hdr i{animation:capulse 2.2s ease-in-out infinite}
+.ca-pill.hdr:hover{background:color-mix(in srgb,var(--mint) 85%,transparent);box-shadow:0 10px 26px -10px #119b7daa}
+.ca-pill.hdr.copied{background:var(--ink);color:var(--bg)}.ca-pill.hdr.copied code,.ca-pill.hdr.copied b,.ca-pill.hdr.copied svg{color:var(--bg)}
+@keyframes capulse{0%,100%{box-shadow:0 0 0 3px color-mix(in srgb,var(--mint-d) 30%,transparent)}50%{box-shadow:0 0 0 7px color-mix(in srgb,var(--mint-d) 8%,transparent)}}
+[data-theme=dusk] .ca-pill.hdr{background:color-mix(in srgb,var(--mint-d) 30%,transparent)}
+@media (max-width:980px){.ca-pill.hdr code{display:none}}
+@media (max-width:640px){.ca-pill.hdr{display:none}}

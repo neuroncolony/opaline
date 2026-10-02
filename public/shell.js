@@ -2,6 +2,8 @@
 (function(){
 'use strict';
 const O = window.O = {};
+/* Token contract. Fill address at launch; the pills stay hidden while empty. */
+O.CA = { address: '', chain: 'Solana', ticker: 'LUSTRE' };
 const $ = O.$ = (s, r=document) => r.querySelector(s);
 const $$ = O.$$ = (s, r=document) => Array.from(r.querySelectorAll(s));
 const esc = O.esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -175,6 +177,7 @@ function renderHeader() {
     <div class="hdr-r">
       <button class="btn btn-soft btn-sm search-btn" id="cmdBtn" aria-label="Search">${I.search.replace('<svg', '<svg width="15" height="15"')}<span class="lbl-t">Search</span><span class="kbd">/</span></button>
       <button class="icon-btn" id="themeBtn" aria-label="Toggle theme">${O.theme === 'dusk' ? I.sun : I.moon}</button>
+      ${caPill('hdr')}
       <button class="btn btn-primary btn-sm" id="walletBtn">Connect</button>
       <button class="icon-btn burger" id="burger" aria-label="Menu">${I.menu}</button>
     </div></div></div></header>`);
@@ -190,11 +193,10 @@ function renderHeader() {
   let lastY = 0; addEventListener('scroll', () => { const y = scrollY; hdr.classList.toggle('scrolled', y > 20); lastY = y; }, {passive: true});
 }
 /* Token contract. Fill O.CA.address at launch; the pill stays hidden while empty. */
-O.CA = { address: '', chain: 'Solana', ticker: 'LUSTRE' };
-function caPill() {
+function caPill(where='') {
   const c = O.CA; if (!c.address) return '';
   const short = c.address.slice(0, 4) + '\u2026' + c.address.slice(-4);
-  return `<button class="ca-pill" type="button" data-ca="${c.address}" aria-label="Copy ${c.ticker} contract address" title="Copy contract address"><i></i><b>$${c.ticker}</b><code>${short}</code><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>`;
+  return `<button class="ca-pill ${where}" type="button" data-ca="${c.address}" aria-label="Copy ${c.ticker} contract address" title="Copy contract address"><i></i><b>$${c.ticker}</b><code>${short}</code><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>`;
 }
 document.addEventListener('click', async e => {
   const b = e.target.closest('.ca-pill'); if (!b) return;
