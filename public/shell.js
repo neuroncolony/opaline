@@ -3,7 +3,7 @@
 'use strict';
 const O = window.O = {};
 /* Token contract. Fill address at launch; the pills stay hidden while empty. */
-O.CA = { address: '', chain: 'Solana', ticker: 'LUSTRE' };
+O.CA = { address: '0x27938ef520197a1569662dca41129a6266fdef22', chain: 'EVM', ticker: 'LUSTRE', link: 'https://www.ponsfamily.com/launchpad/0x27938ef520197a1569662dca41129a6266fdef22' };
 const $ = O.$ = (s, r=document) => r.querySelector(s);
 const $$ = O.$$ = (s, r=document) => Array.from(r.querySelectorAll(s));
 const esc = O.esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -196,7 +196,7 @@ function renderHeader() {
 function caPill(where='') {
   const c = O.CA; if (!c.address) return '';
   const short = c.address.slice(0, 4) + '\u2026' + c.address.slice(-4);
-  return `<button class="ca-pill ${where}" type="button" data-ca="${c.address}" aria-label="Copy ${c.ticker} contract address" title="Copy contract address"><i></i><b>$${c.ticker}</b><code>${short}</code><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>`;
+  return `<button class="ca-pill ${where}" type="button" data-ca="${c.address}" aria-label="Copy ${c.ticker} contract address" title="Copy contract address"><i></i><b>$${c.ticker}</b><code>${short}</code><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>${c.link ? `<a class="ca-link ${where}" href="${c.link}" target="_blank" rel="noopener" title="Open $${c.ticker} on Pons">Trade<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg></a>` : ''}`;
 }
 document.addEventListener('click', async e => {
   const b = e.target.closest('.ca-pill'); if (!b) return;
