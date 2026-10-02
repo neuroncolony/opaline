@@ -189,13 +189,26 @@ function renderHeader() {
   $('#walletBtn').onclick = () => O.wallet.account ? O.walletMenu() : O.wallet.connect();
   let lastY = 0; addEventListener('scroll', () => { const y = scrollY; hdr.classList.toggle('scrolled', y > 20); lastY = y; }, {passive: true});
 }
+/* Token contract. Fill O.CA.address at launch; the pill stays hidden while empty. */
+O.CA = { address: '', chain: 'Solana', ticker: 'LUSTRE' };
+function caPill() {
+  const c = O.CA; if (!c.address) return '';
+  const short = c.address.slice(0, 4) + '\u2026' + c.address.slice(-4);
+  return `<button class="ca-pill" type="button" data-ca="${c.address}" aria-label="Copy ${c.ticker} contract address" title="Copy contract address"><i></i><b>$${c.ticker}</b><code>${short}</code><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>`;
+}
+document.addEventListener('click', async e => {
+  const b = e.target.closest('.ca-pill'); if (!b) return;
+  try { await navigator.clipboard.writeText(b.dataset.ca); } catch (_) { const ta = document.createElement('textarea'); ta.value = b.dataset.ca; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); }
+  b.classList.add('copied'); b.querySelector('code').textContent = 'Copied'; O.toast(`$${O.CA.ticker} contract address copied`, 'ok');
+  setTimeout(() => { b.classList.remove('copied'); b.querySelector('code').textContent = O.CA.address.slice(0, 4) + '\u2026' + O.CA.address.slice(-4); }, 1600);
+});
 function renderFooter() {
   document.body.appendChild(O.h(`<footer class="ftr"><div class="wrap"><div class="cols">
     <div><a class="brand" href="/">${O.LOGO}<span>Lustre</span></a><p style="margin-top:14px;max-width:340px">One calm place to discover, compare and own tokenized real-world assets across every chain. Self-custodial, routed live.</p><p class="faint" style="margin-top:14px;font-size:12px">Market data from public sources. Nothing here is investment advice.</p></div>
     <div><h4>Markets</h4><a href="/markets">All markets</a><a href="/compare">Issuer spreads</a><a href="/issuers">Issuers</a><a href="/pools">Pools</a></div>
     <div><h4>Invest</h4><a href="/baskets">Baskets</a><a href="/strategies">Strategies</a><a href="/earn">Yield</a><a href="/lend">Lend and borrow</a><a href="/auto-invest">Auto-invest</a></div>
     <div><h4>You</h4><a href="/portfolio">Portfolio</a><a href="/watchlist">Watchlist</a><a href="/orders">Orders</a><a href="/alerts">Alerts</a><a href="/docs">Docs</a></div>
-  </div><div class="ftr-base"><span>\u00a9 ${new Date().getFullYear()} Lustre Labs. All rights reserved.</span><nav><a href="/terms">Terms of Service</a><a href="/privacy">Privacy Policy</a><a href="/risk">Risk Disclosure</a><a href="/docs">Docs</a></nav></div>
+  </div><div class="ftr-base"><span style="display:inline-flex;align-items:center;gap:14px;flex-wrap:wrap">\u00a9 ${new Date().getFullYear()} Lustre Labs. All rights reserved.${caPill()}</span><nav><a href="/terms">Terms of Service</a><a href="/privacy">Privacy Policy</a><a href="/risk">Risk Disclosure</a><a href="/docs">Docs</a></nav></div>
   <p class="ftr-legal">Lustre is a non-custodial interface. It does not hold user funds, execute trades on anyone's behalf, or issue any token. Tokenized assets are issued by third parties and may be unavailable to residents of certain jurisdictions, including the United States. Prices and data are provided for information only and are not investment, legal or tax advice.</p></div></footer>`));
 }
 
@@ -566,4 +579,5 @@ function boot() {
   new MutationObserver(() => O.reveal()).observe(document.body, {childList: true, subtree: true});
 }
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot); else boot();
+if (location.search.includes('promo')) { const st = document.createElement('style'); st.textContent = '.btn-grad.promo-hover{background-position:100% 0;box-shadow:0 18px 44px -12px #8ea0ff88}.card.hover.promo-hover{transform:translateY(-4px);box-shadow:var(--shadow-lg);border-color:var(--line2)}.btn.promo-hover,button.promo-hover{filter:brightness(.96)}*{caret-color:var(--ink)}.rv{opacity:1!important;transform:none!important;transition:none!important}'; document.head.appendChild(st); }
 })();

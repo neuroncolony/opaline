@@ -249,3 +249,14 @@ footer.ftr .ftr-legal{margin-top:16px;font-size:12px;line-height:1.6;color:var(-
 .legal .upd{color:var(--ink3);font-size:13px;margin-top:10px}.legal h2{font-size:18px;margin-top:34px}
 .legal p,.legal li{font-size:15px;line-height:1.75;color:var(--ink2)}.legal p{margin-top:10px}.legal ul{padding-left:20px;margin-top:10px}
 [data-theme="dusk"] .brand svg,.dusk .brand svg{filter:invert(1) hue-rotate(180deg) brightness(1.1)}
+
+/* token contract pill (footer) */
+.ca-pill{display:inline-flex;align-items:center;gap:7px;padding:4px 10px 4px 8px;border-radius:999px;font-size:12px;font-weight:600;background:var(--bg2);border:1px solid var(--line);color:var(--ink2);cursor:pointer;font-family:var(--sans);transition:all .25s var(--ease)}
+.ca-pill i{width:6px;height:6px;border-radius:50%;background:var(--mint);box-shadow:0 0 0 3px color-mix(in srgb,var(--mint) 35%,transparent)}
+.ca-pill b{color:var(--ink);font-weight:700}
+.ca-pill code{font-family:var(--mono);font-size:11px;color:var(--ink3)}
+.ca-pill svg{color:var(--ink3);transition:color .25s}
+.ca-pill:hover{border-color:var(--line2);color:var(--ink);box-shadow:0 6px 18px -10px #0f142855;transform:translateY(-1px)}
+.ca-pill:hover svg{color:var(--ink)}
+.ca-pill.copied{background:color-mix(in srgb,var(--mint) 55%,transparent);border-color:transparent}
+.ca-pill.copied code{color:var(--ink)}
